@@ -1,0 +1,420 @@
+/* components/Header.module.css */
+
+.header {
+  background-color: #00ADEF;
+  padding: 0.75rem 1.25rem; /* Zmniejszony padding boczny na mniejsze ekrany */
+  color: white;
+  transition: padding 0.3s ease-in-out;
+  position: relative;
+  z-index: 1000;
+}
+
+.headerPlaceholder {
+  background-color: #00ADEF;
+  padding: 0.75rem 1.25rem;
+  color: white;
+  display: flex;
+  align-items: center;
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 42px;
+  width: 100%;
+}
+
+.logoContainer {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0; /* Zapobiega kurczeniu się logo */
+}
+
+.navDesktop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-grow: 1;
+  margin-left: 1rem; /* Zmniejszony odstęp od logo */
+  gap: 1rem; /* Odstęp między sekcjami L,C,R */
+}
+
+.navLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* Zmniejszony odstęp między linkami */
+}
+
+.navCenter {
+  display: flex;
+  align-items: center;
+  /* Usuwamy pozycjonowanie absolutne, flexbox powinien sobie poradzić */
+}
+
+.navRight {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem; /* Zmniejszony odstęp */
+}
+
+.logoWrapper {
+  display: flex;
+  align-items: center;
+}
+
+.logoImage {
+  filter: brightness(0) invert(1);
+}
+
+.tokenPriceIndicatorLink {
+  font-size: 0.85rem; /* Nieco mniejszy na desktopie */
+  color: white;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px; /* Mniejsze zaokrąglenie */
+  background-color: rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, background-color 0.2s ease-in-out;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem; /* Mniejszy odstęp */
+  position: relative;
+  white-space: nowrap;
+}
+
+.tokenPriceIndicatorLink:hover {
+  background-color: rgba(0, 0, 0, 0.2);
+  transform: scale(1.05); /* Zmniejszone skalowanie dla subtelniejszego efektu */
+  box-shadow: 0 0 12px 0px rgba(99, 211, 145, 0.5); /* Zmniejszony cień */
+  color: white;
+}
+
+.ethSymbol {
+  /* width/height w komponencie Image */
+}
+
+.tokenPriceValue {
+  font-weight: bold;
+  color: white;
+}
+
+.navLink {
+  color: white;
+  text-decoration: none;
+  padding: 0.4rem 0.6rem; /* Mniejszy padding */
+  border-radius: 6px;
+  display: inline-block;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  white-space: nowrap;
+  font-size: 0.9rem; /* Mniejsza czcionka */
+  position: relative;
+}
+
+.navLink:hover {
+  transform: scale(1.05); /* Zmniejszone skalowanie */
+  box-shadow: 0 0 12px 0px rgba(99, 211, 145, 0.5); /* Zmniejszony cień */
+}
+
+.iconThemeToggle {
+  background-color: transparent;
+  color: white;
+  border: none;
+  padding: 0.5rem; /* Mniejszy padding */
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  position: relative;
+}
+.themeIconSvg {
+  width: 22px; /* Mniejsza ikonka motywu */
+  height: 22px;
+}
+
+.iconThemeToggle:hover {
+  background-color: rgba(255, 255, 255, 0.15); /* Mniej intensywne podświetlenie */
+  transform: scale(1.15); /* Mniejsze skalowanie */
+  box-shadow: 0 0 12px 0px rgba(99, 211, 145, 0.4); /* Mniejszy cień */
+}
+
+.desktopThemeToggle { /* Klasa dla przycisku motywu tylko na desktopie */
+  /* Jeśli potrzebne specyficzne style */
+}
+
+.searchBarContainer {
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  border-radius: 6px; /* Mniejsze zaokrąglenie */
+  position: relative;
+}
+
+.searchBarShadow {
+  transform: scale(1.03); /* Mniejsze skalowanie dla searchbara */
+  box-shadow: 0 0 15px 1px rgba(99, 211, 145, 0.6); /* Mniejszy cień */
+}
+
+.searchInput {
+  padding: 0.4rem 0.7rem; /* Mniejszy padding */
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
+  border-right: none;
+  font-size: 0.8rem; /* Mniejsza czcionka */
+  background-color: rgba(0, 0, 0, 0.12);
+  color: white;
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  height: 36px; /* Mniejsza wysokość */
+  box-sizing: border-box;
+  min-width: 130px;
+  max-width: 200px;
+}
+
+.searchInput::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+  opacity: 1;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.65);
+  background-color: rgba(0, 0, 0, 0.22);
+  z-index: 2;
+  position: relative;
+}
+
+.searchButton {
+  padding: 0.4rem 1rem; /* Mniejszy padding */
+  background-color: #63D391;
+  color: white;
+  border: none;
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem; /* Mniejsza czcionka */
+  font-weight: 500;
+  transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+  white-space: nowrap;
+  height: 36px; /* Mniejsza wysokość */
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.searchButton:hover {
+  background-color: #52c280;
+}
+
+.searchButton:active {
+  background-color: #47ad71;
+  transform: scale(0.98);
+}
+
+.connectWalletButtonWrapper {
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  border-radius: 6px; /* Mniejsze zaokrąglenie */
+  position: relative;
+}
+
+.connectWalletButtonWrapper:hover {
+  transform: scale(1.03); /* Mniejsze skalowanie */
+  box-shadow: 0 0 12px 0px rgba(99, 211, 145, 0.5); /* Mniejszy cień */
+}
+
+/* --- STYLE HAMBURGERA I MENU MOBILNEGO --- */
+.mobileHeaderControls { /* Kontener dla przycisków po prawej na mobile */
+  display: none; /* Ukryty na desktopie */
+  align-items: center;
+  gap: 0.5rem; /* Odstęp między ikoną motywu a hamburgerem */
+  margin-left: auto; /* Przesuwa na prawo */
+}
+.mobileInlineThemeToggle {
+  display: none; /* Domyślnie ukryty, pokaże się tylko na mobile */
+}
+
+
+.hamburgerMenuButtonContainer {
+  display: none;
+}
+
+.hamburgerButton {
+  background: none;
+  border: none;
+  color: white;
+  padding: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1002; /* Powyżej menu */
+}
+
+.hamburgerIconSvg {
+  width: 28px; /* Nieco mniejsza ikonka hamburgera */
+  height: 28px;
+}
+
+.mobileMenu {
+  display: flex; /* Zmienione na flex dla lepszego zarządzania .mobileMenuContent */
+  flex-direction: column; /* Zachowujemy kierunek kolumny */
+  position: fixed; /* Zmienione na fixed dla pełnoekranowego overlay */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0; /* Zajmuje całą wysokość */
+  background-color: rgba(0, 145, 214, 0.98); /* Tło z przezroczystością dla efektu "pod spodem" */
+  backdrop-filter: blur(5px); /* Rozmycie tła pod menu */
+  padding: 1.5rem; /* Większy padding w menu */
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  z-index: 1001; /* Nad resztą strony, pod hamburgerem jeśli ma wyższy z-index */
+  transform: translateX(100%); /* Wysuwa się z prawej */
+  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Płynniejsza animacja */
+  overflow-y: auto;
+}
+
+.mobileMenuOpen {
+  transform: translateX(0); /* Widoczne */
+}
+
+.mobileMenuContent { /* Dodatkowy wrapper dla lepszego zarządzania paddingiem i scrollem */
+  padding-top: 60px; /* Odstęp od góry, aby nie nachodziło na X (jeśli X jest wewnątrz menu) */
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* Odstęp między głównymi grupami elementów */
+}
+
+
+.mobileNavLink {
+  color: white;
+  text-decoration: none;
+  padding: 0.9rem 1rem; /* Większy padding dla łatwiejszego klikania */
+  display: block;
+  border-radius: 8px; /* Większe zaokrąglenie */
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  font-size: 1.1rem;
+  text-align: center; /* Wyśrodkowanie tekstu */
+  font-weight: 500;
+}
+
+.mobileNavLink:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+  transform: translateX(5px); /* Subtelny efekt przesunięcia */
+}
+
+.mobileMenuDivider {
+  /* Usunięte, będziemy używać `gap` na .mobileMenuContent lub marginesów na .mobileMenuItem */
+}
+
+.mobileMenuItem {
+  padding: 0.5rem 0;
+  display: flex;
+  flex-direction: column; /* Aby elementy wewnątrz (np. token price) były responsywne */
+  align-items: center; /* Wyśrodkowanie elementów */
+  width: 100%; /* Aby elementy zajmowały całą szerokość i były centrowane */
+}
+.mobileMenuItem > * { /* Elementy wewnątrz .mobileMenuItem */
+   width: 100%; /* Domyślnie, ale można nadpisać */
+   max-width: 320px; /* Maksymalna szerokość dla np. searchbara, token price */
+   margin-bottom: 0.5rem; /* Odstęp pod każdym elementem w grupie */
+}
+.mobileMenuItem > *:last-child {
+  margin-bottom: 0;
+}
+
+
+.mobileTokenPrice { /* Specyficzne style dla TokenPriceIndicator w menu mobilnym */
+  padding: 0.8rem 1rem; /* Większy padding */
+  font-size: 1rem;
+  justify-content: center; /* Wyśrodkowanie zawartości (ETH i cena) */
+}
+.mobileSearchBarContainer { /* Specyficzne style dla SearchBar w menu mobilnym */
+  flex-direction: column; /* Input nad przyciskiem */
+  gap: 0.5rem;
+  box-shadow: none !important; /* Usunięcie cienia na mobile, bo jest w kontenerze */
+  transform: none !important; /* Usunięcie transform na mobile */
+}
+.mobileSearchBarContainer .searchInput,
+.mobileSearchBarContainer .searchButton {
+  width: 100%; /* Pełna szerokość w kontenerze mobilnym */
+  max-width: 100%; /* Nadpisanie max-width z desktopa */
+  min-width: unset;  /* Nadpisanie min-width z desktopa */
+  border-radius: 6px; /* Równe zaokrąglenie dla obu */
+  height: 42px; /* Ujednolicona wysokość */
+}
+.mobileSearchBarContainer .searchInput {
+  border-right: 1px solid rgba(255, 255, 255, 0.35); /* Przywrócenie prawej ramki */
+}
+
+
+.connectWalletMobileWrapper {
+  padding-top: 0.5rem; /* Większy odstęp przed przyciskiem portfela */
+}
+.connectWalletMobileWrapper > * { /* Aby w3m-button ładnie się wyświetlał */
+  width: 100% !important; /* Próba wymuszenia szerokości */
+  max-width: 320px !important; /* Ograniczenie szerokości */
+  margin: 0 auto; /* Wyśrodkowanie */
+  /* Tutaj mogą być potrzebne dodatkowe hacki dla <w3m-button> jeśli nie chce się stylować */
+  /* np. przez --w3m-button-border-radius itp. jeśli biblioteka to wspiera */
+}
+
+
+/* Breakpoint */
+@media (max-width: 1024px) {
+  .navDesktop {
+    display: none;
+  }
+  .mobileHeaderControls { /* Pokaż kontener z ikoną motywu i hamburgerem */
+    display: flex;
+  }
+  .mobileInlineThemeToggle { /* Pokaż ikonę motywu obok hamburgera */
+    display: flex;
+  }
+  .hamburgerMenuButtonContainer {
+    display: flex;
+  }
+  .header {
+    padding: 0.6rem 1rem; /* Mniejszy padding na mobile */
+  }
+  .headerPlaceholder {
+    padding: 0.6rem 1rem;
+  }
+}
+@media (max-width: 480px) { /* Mniejsze ekrany mobilne */
+  .tokenPriceIndicatorLink { font-size: 0.8rem; padding: 0.3rem 0.5rem; gap: 0.2rem;}
+  .ethSymbol { width: 16px !important; height: 16px !important;}
+  .navLink { font-size: 0.85rem; padding: 0.3rem 0.5rem;}
+  .searchInput, .searchButton { height: 34px; font-size: 0.75rem; }
+  .mobileNavLink { font-size: 1rem; padding: 0.8rem; }
+  .mobileSearchBarContainer .searchInput,
+  .mobileSearchBarContainer .searchButton {
+    height: 38px; /* Mniejsza wysokość na bardzo małych ekranach */
+  }
+}
+
+
+/* Style dla ciemnego motywu */
+:global(html.dark) .header {}
+:global(html.dark) .tokenPriceIndicatorLink { background-color: rgba(255, 255, 255, 0.08); color: #cbd5e1; }
+:global(html.dark) .tokenPriceIndicatorLink:hover { background-color: rgba(255, 255, 255, 0.12); color: #e2e8f0; box-shadow: 0 0 12px 0px rgba(100, 220, 150, 0.4); }
+:global(html.dark) .tokenPriceValue { color: #e2e8f0; }
+:global(html.dark) .searchInput { background-color: rgba(255, 255, 255, 0.06); color: #e2e8f0; border-color: rgba(255, 255, 255, 0.2); }
+:global(html.dark) .searchInput::placeholder { color: rgba(255, 255, 255, 0.5); }
+:global(html.dark) .searchInput:focus { border-color: rgba(255, 255, 255, 0.5); background-color: rgba(255, 255, 255, 0.1); }
+:global(html.dark) .logoImage { filter: brightness(0) invert(1); }
+:global(html.dark) .navLink:hover { box-shadow: 0 0 12px 0px rgba(100, 220, 150, 0.4); }
+:global(html.dark) .iconThemeToggle:hover { box-shadow: 0 0 12px 0px rgba(100, 220, 150, 0.3); }
+:global(html.dark) .searchBarShadow { box-shadow: 0 0 15px 1px rgba(100, 220, 150, 0.5); }
+:global(html.dark) .connectWalletButtonWrapper:hover { box-shadow: 0 0 12px 0px rgba(100, 220, 150, 0.4); }
+
+:global(html.dark) .mobileMenu { background-color: rgba(20, 30, 48, 0.98); backdrop-filter: blur(5px); } /* Ciemniejsze tło dla menu w dark mode */
+:global(html.dark) .mobileNavLink { color: #cbd5e1; }
+:global(html.dark) .mobileNavLink:hover { background-color: rgba(255, 255, 255, 0.08); transform: translateX(5px); }
+
+:global(html.dark) .mobileSearchBarContainer .searchInput {
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+}
