@@ -6,7 +6,7 @@
   color: white;
   transition: padding 0.3s ease-in-out;
   position: relative;
-  z-index: 1000;
+  z-index: 50;
 }
 
 .headerPlaceholder {
@@ -113,7 +113,7 @@
 .iconThemeToggle:hover {
   background-color: rgba(255, 255, 255, 0.15);
   transform: scale(1.15);
-  box-shadow: 0 0 12px 0px rgba(99, 211, 145, 0.4);
+  box-shadow: 0 0 12px 0px rgba(238, 240, 239, 0.4);
 }
 
 .desktopThemeToggle {

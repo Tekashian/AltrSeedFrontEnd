@@ -8,7 +8,7 @@ import Header from '../components/Header'; // Import the Header component
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "AppKit Example App",
+  title: "AltrSeed.io",
   description: "Powered by Reown",
 };
 
