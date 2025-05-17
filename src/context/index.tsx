@@ -1,7 +1,7 @@
 // context/index.tsx
 'use client'
 
-import { wagmiAdapter, projectId } from "@/config"
+import { wagmiAdapter, projectId } from "../config/index"
 import { createAppKit } from "@reown/appkit"
 import { mainnet, arbitrum, sepolia } from '@reown/appkit/networks'
 

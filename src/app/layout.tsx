@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { headers } from "next/headers";
-import ContextProvider from "@/context";
+import ContextProvider from "@/src/context";
 import Header from '../components/Header'; // Import the Header component
 
 const inter = Inter({ subsets: ["latin"] });
