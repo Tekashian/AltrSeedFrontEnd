@@ -1,4 +1,5 @@
 export const crowdfundABI = [
+  // ---- TUTAJ WKLEJ CAŁY NOWY ABI ----
   {"inputs":[{"internalType":"address","name":"_initialOwner","type":"address"},{"internalType":"address","name":"_initialCommissionWallet","type":"address"},{"internalType":"uint256","name":"_initialStartupDonationCommPerc","type":"uint256"},{"internalType":"uint256","name":"_initialCharityDonationCommPerc","type":"uint256"},{"internalType":"uint256","name":"_initialRefundCommPerc","type":"uint256"},{"internalType":"uint256","name":"_initialStartupSuccessCommPerc","type":"uint256"},{"internalType":"uint256","name":"_initialCharitySuccessCommPerc","type":"uint256"}],"stateMutability":"nonpayable","type":"constructor"},
   {"inputs":[],"name":"AlreadyReclaimed","type":"error"},
   {"inputs":[],"name":"CampaignHasEnded","type":"error"},
@@ -64,39 +65,9 @@ export const crowdfundABI = [
   {"inputs":[{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"address","name":"","type":"address"}],"name":"donations","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
   {"inputs":[{"internalType":"uint256","name":"_campaignId","type":"uint256"}],"name":"failCampaignIfUnsuccessful","outputs":[],"stateMutability":"nonpayable","type":"function"},
   {"inputs":[{"internalType":"uint256","name":"_campaignId","type":"uint256"}],"name":"finalizeClosureAndWithdraw","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[],"name":"getAllCampaigns","outputs":[{"components":[{"internalType":"address","name":"creator","type":"address"},{"internalType":"contract IERC20","name":"acceptedToken","type":"address"},{"internalType":"uint256","name":"targetAmount","type":"uint256"},{"internalType":"uint256","name":"raisedAmount","type":"uint256"},{"internalType":"uint256","name":"totalEverRaised","type":"uint256"},{"internalType":"string","name":"dataCID","type":"string"},{"internalType":"uint256","name":"endTime","type":"uint256"},{"internalType":"enum Crowdfund.Status","name":"status","type":"uint8"},{"internalType":"uint256","name":"creationTimestamp","type":"uint256"},{"internalType":"uint256","name":"reclaimDeadline","type":"uint256"},{"internalType":"enum Crowdfund.CampaignType","name":"campaignType","type":"uint8"}],"internalType":"struct Crowdfund.Campaign[]","name":"","type":"tuple[]"}],"stateMutability":"view","type":"function"},
   {"inputs":[{"internalType":"uint256","name":"_campaignId","type":"uint256"}],"name":"getCampaignCreator","outputs":[{"internalType":"address","name":"creatorAddress","type":"address"}],"stateMutability":"view","type":"function"},
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_campaignId",
-        "type": "uint256"
-      }
-    ],
-    "name": "getCampaignDetails",
-    "outputs": [
-      {
-        "components": [
-          { "internalType": "address", "name": "creator", "type": "address" },
-          { "internalType": "address", "name": "acceptedToken", "type": "address" }, // Zmieniono z contract IERC20 na address dla prostoty typu
-          { "internalType": "uint256", "name": "targetAmount", "type": "uint256" },
-          { "internalType": "uint256", "name": "raisedAmount", "type": "uint256" },
-          { "internalType": "uint256", "name": "totalEverRaised", "type": "uint256" },
-          { "internalType": "string", "name": "dataCID", "type": "string" },
-          { "internalType": "uint256", "name": "endTime", "type": "uint256" },
-          { "internalType": "uint8", "name": "status", "type": "uint8" }, // Zmieniono z enum na uint8
-          { "internalType": "uint256", "name": "creationTimestamp", "type": "uint256" },
-          { "internalType": "uint256", "name": "reclaimDeadline", "type": "uint256" },
-          { "internalType": "uint8", "name": "campaignType", "type": "uint8" } // Zmieniono z enum na uint8
-        ],
-        "internalType": "struct Crowdfund.Campaign",
-        "name": "campaignData",
-        "type": "tuple"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
+  {"inputs":[{"internalType":"uint256","name":"_campaignId","type":"uint256"}],"name":"getCampaignDetails","outputs":[{"components":[{"internalType":"address","name":"creator","type":"address"},{"internalType":"contract IERC20","name":"acceptedToken","type":"address"},{"internalType":"uint256","name":"targetAmount","type":"uint256"},{"internalType":"uint256","name":"raisedAmount","type":"uint256"},{"internalType":"uint256","name":"totalEverRaised","type":"uint256"},{"internalType":"string","name":"dataCID","type":"string"},{"internalType":"uint256","name":"endTime","type":"uint256"},{"internalType":"enum Crowdfund.Status","name":"status","type":"uint8"},{"internalType":"uint256","name":"creationTimestamp","type":"uint256"},{"internalType":"uint256","name":"reclaimDeadline","type":"uint256"},{"internalType":"enum Crowdfund.CampaignType","name":"campaignType","type":"uint8"}],"internalType":"struct Crowdfund.Campaign","name":"campaignData","type":"tuple"}],"stateMutability":"view","type":"function"},
   {"inputs":[{"internalType":"uint256","name":"_campaignId","type":"uint256"},{"internalType":"address","name":"_donor","type":"address"}],"name":"getDonationAmountForDonor","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
   {"inputs":[],"name":"getWhitelistedTokens","outputs":[{"internalType":"address[]","name":"","type":"address[]"}],"stateMutability":"view","type":"function"},
   {"inputs":[{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"address","name":"","type":"address"}],"name":"hasReclaimed","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},
@@ -120,31 +91,29 @@ export const crowdfundABI = [
   {"inputs":[{"internalType":"string","name":"","type":"string"}],"name":"tokenSymbolToAddress","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},
   {"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},
   {"inputs":[],"name":"unpauseContract","outputs":[],"stateMutability":"nonpayable","type":"function"},
-  {"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"whitelistedTokens","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_campaignId","type":"uint256"}],"name":"withdrawFunds","outputs":[],"stateMutability":"nonpayable","type":"function"}
-] as const; // Dodajemy 'as const' aby TypeScript lepiej inferował typy
+  {"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"whitelistedTokens","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"internalType":"uint256","name":"_campaignId","type":"uint256"}],"name":"withdrawFunds","outputs":[],"stateMutability":"nonpayable","type":"function"}
+] as const;
 
-// Definicja typu dla pojedynczej kampanii na podstawie struktury Campaign w Solidity
-// oraz danych, które pobierzemy dodatkowo z IPFS (dataCID)
+// --- poniżej nie zmieniaj, jeśli struktura kampanii się nie zmieniła ---
 export interface Campaign {
   id: bigint;
-  creator: `0x${string}`; // Adres Ethereum
-  acceptedToken: `0x${string}`; // Adres tokena
+  creator: `0x${string}`;
+  acceptedToken: `0x${string}`;
   targetAmount: bigint;
   raisedAmount: bigint;
   totalEverRaised: bigint;
-  dataCID: string; // CID do metadanych na IPFS
-  endTime: bigint; // Unix timestamp
-  status: number; // enum Crowdfund.Status (0: Active, 1: Successful, 2: Failed, 3: Cancelled, 4: Closing)
+  dataCID: string;
+  endTime: bigint;
+  status: number; // enum Crowdfund.Status
   creationTimestamp: bigint;
   reclaimDeadline: bigint;
-  campaignType: number; // enum Crowdfund.CampaignType (0: Startup, 1: Charity)
-  // Dodatkowe pola, które będą pobierane z IPFS na podstawie dataCID
+  campaignType: number; // enum Crowdfund.CampaignType
   title?: string;
   description?: string;
   imageUrl?: string;
 }
 
-// Enumy dla lepszej czytelności w kodzie TypeScript
 export enum CampaignStatus {
   Active,
   Successful,
@@ -159,4 +128,4 @@ export enum CampaignType {
 }
 
 export const CROWDFUND_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CROWDFUND_CONTRACT_ADDRESS as `0x${string}` || "0x17EDEa9a39c48eD268B187abE8f46e915B04fF2b";
-export const TARGET_CHAIN_ID = parseInt(process.env.NEXT_PUBLIC_TARGET_CHAIN_ID || "11155111"); // Domyślnie Sepolia
+export const TARGET_CHAIN_ID = parseInt(process.env.NEXT_PUBLIC_TARGET_CHAIN_ID || "11155111");

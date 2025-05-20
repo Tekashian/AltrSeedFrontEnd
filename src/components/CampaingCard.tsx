@@ -245,12 +245,12 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({ campaign, onDetailsC
         </div>
 
         {/* Przyciski akcji */}
-        <div className="mt-5 flex space-x-3">
+        <div className="mt-5 flex flex-col space-y-3"> {/* Zmieniono na flex-col i space-y dla przycisku pod spodem */}
           {onDetailsClick && (
             <button
               onClick={handleDetailsClick}
               className="
-                flex-1 bg-slate-700 hover:bg-slate-600
+                w-full bg-slate-700 hover:bg-slate-600
                 text-slate-200 font-medium
                 py-2.5 px-4 rounded-lg
                 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-40
@@ -263,7 +263,7 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({ campaign, onDetailsC
             <button
               onClick={handleDonateClick}
               className={`
-                flex-1 ${accentColor} ${accentColorHover}
+                w-full ${accentColor} ${accentColorHover}
                 text-white font-semibold
                 py-2.5 px-4 rounded-lg
                 shadow-md hover:shadow-lg hover:shadow-teal-500/40
@@ -271,9 +271,10 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({ campaign, onDetailsC
                 transition-all duration-200 ease-in-out text-sm
               `}
             >
-              Wesprzyj Projekt
+              Donate
             </button>
           )}
+          
         </div>
       </div>
     </div>
