@@ -2,7 +2,7 @@
 "use client"; // Komponenty używające hooków muszą być komponentami klienckimi
 
 import React from 'react';
-import { CampaignCard } from '../components/CampaingCard'; // Upewnij się, że ścieżka jest poprawna
+import { CampaignCard } from '../components/CampaignCard'; // Upewnij się, że ścieżka jest poprawna
 import { useGetAllCampaigns, type Campaign } from '../hooks/useCrowdfund'; // Upewnij się, że ścieżka jest poprawna
 import Footer from '../components/Footer'; // Importuj komponent stopki
 

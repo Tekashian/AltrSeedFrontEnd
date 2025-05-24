@@ -1,0 +1,12 @@
+/* moduł CSS dla strony Startups */
+.main {
+  @apply container mx-auto p-6;
+}
+
+.title {
+  @apply text-3xl font-bold mb-4;
+}
+
+.grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6;
+}

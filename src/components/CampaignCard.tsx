@@ -1,7 +1,11 @@
 // src/components/CampaignCard.tsx
+'use client';
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { useAccount } from 'wagmi';
 import { type Campaign } from '../hooks/useCrowdfund';
 import DonateButton from './DonateButton';
+import RefundButton from './RefundButton';
 
 interface CampaignCardProps {
   campaign: Campaign;
@@ -50,6 +54,8 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({ campaign, onDetailsC
   const [isLoadingMetadata, setIsLoadingMetadata] = useState<boolean>(true);
   const [metadataError, setMetadataError] = useState<string | null>(null);
   const [donationInput, setDonationInput] = useState<string>('');
+  const [showRefund, setShowRefund] = useState<boolean>(false);
+  const { address } = useAccount();
 
   useEffect(() => {
     setIsLoadingMetadata(true);
@@ -89,12 +95,12 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({ campaign, onDetailsC
     ? 'USDC'
     : `${campaign.acceptedToken.substring(0, 5)}...${campaign.acceptedToken.substring(campaign.acceptedToken.length - 3)}`;
 
-  const campaignTitle = isLoadingMetadata 
-    ? "Ładowanie tytułu..." 
+  const campaignTitle = isLoadingMetadata
+    ? "Ładowanie tytułu..."
     : (metadata?.title || `Kampania ${campaign.campaignId}`);
 
-  const campaignDescription = isLoadingMetadata 
-    ? "Ładowanie opisu..." 
+  const campaignDescription = isLoadingMetadata
+    ? "Ładowanie opisu..."
     : (metadata?.description || "Brak dodatkowych informacji.");
 
   const handleDetailsClick = () => {
@@ -113,18 +119,26 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({ campaign, onDetailsC
 
   const currentStatusStyle = statusStyles[campaign.status] || { text: 'text-slate-400', border: 'border-slate-500', bg: 'bg-slate-500/10' };
   const accentColor = "bg-teal-500";
-  const accentColorHover = "hover:bg-teal-600";
 
   return (
     <div className="group bg-[#1E1B2E] rounded-xl shadow-lg hover:shadow-[0_0_35px_5px_rgba(0,255,255,0.3)] transition-all duration-300 ease-in-out transform hover:scale-105 m-3 flex flex-col overflow-hidden border border-transparent hover:border-teal-500/50">
       <div className="relative w-full h-56 md:h-64 overflow-hidden">
+        <Image
+          src="/images/BanerAltrSeed.jpg"
+          alt="Baner AltrSeed"
+          fill
+          className="object-cover"
+          priority
+        />
         <div className={`absolute top-3 right-3 px-2.5 py-1 text-xs font-semibold rounded-full border ${currentStatusStyle.border} ${currentStatusStyle.text} ${currentStatusStyle.bg} backdrop-blur-sm`}>
           {getCampaignStatusText(campaign.status)}
         </div>
       </div>
 
       <div className="p-5 flex flex-col flex-grow">
-        <h3 className="text-xl font-semibold text-white mb-1.5 truncate" title={campaignTitle}>{campaignTitle}</h3>
+        <h3 className="text-xl font-semibold text-white mb-1.5 truncate" title={campaignTitle}>
+          {campaignTitle}
+        </h3>
         <div className="text-xs text-slate-400 mb-3">
           Typ: <span className="font-medium text-slate-300">{getCampaignTypeText(campaign.campaignType)}</span>
         </div>
@@ -134,23 +148,37 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({ campaign, onDetailsC
 
         <div className="mb-4">
           <div className="flex justify-between text-xs text-slate-300 mb-1">
-            <span>Zebrano: <span className="font-semibold text-teal-400">{formatAmount(campaign.raisedAmount)} {displayTokenSymbol}</span></span>
-            <span>Cel: <span className="font-semibold text-white">{formatAmount(campaign.targetAmount)} {displayTokenSymbol}</span></span>
+            <span>
+              Zebrano: <span className="font-semibold text-teal-400">{formatAmount(campaign.raisedAmount)} {displayTokenSymbol}</span>
+            </span>
+            <span>
+              Cel: <span className="font-semibold text-white">{formatAmount(campaign.targetAmount)} {displayTokenSymbol}</span>
+            </span>
           </div>
           <div className="w-full bg-slate-700 rounded-full h-2">
-            <div className={`h-2 rounded-full transition-all duration-500 ease-out ${accentColor}`} style={{ width: `${Math.min(progressPercentage, 100)}%` }}></div>
+            <div className={`h-2 rounded-full transition-all duration-500 ease-out ${accentColor}`} style={{ width: `${Math.min(progressPercentage, 100)}%` }} />
           </div>
-          <p className="text-xs text-right text-slate-400 mt-1">{progressPercentage.toFixed(2)}% zebranych</p>
+          <p className="text-xs text-right text-slate-400 mt-1">
+            {progressPercentage.toFixed(2)}% zebranych
+          </p>
         </div>
 
         <div className="border-t border-slate-700/50 pt-3 mt-auto text-xs text-slate-400 space-y-1">
           <div className="flex justify-between items-center">
-            <p>Kreator: <span className="font-mono text-slate-300" title={campaign.creator}>{campaign.creator.substring(0, 6)}...{campaign.creator.slice(-4)}</span></p>
-            <p>Token: <span className="font-semibold text-slate-300" title={campaign.acceptedToken}>{displayTokenSymbol}</span></p>
+            <p>
+              Kreator: <span className="font-mono text-slate-300" title={campaign.creator}>{campaign.creator.substring(0, 6)}...{campaign.creator.slice(-4)}</span>
+            </p>
+            <p>
+              Token: <span className="font-semibold text-slate-300" title={campaign.acceptedToken}>{displayTokenSymbol}</span>
+            </p>
           </div>
-          <p>Zakończenie: <span className="text-slate-300">{new Date(Number(campaign.endTime) * 1000).toLocaleDateString('pl-PL')}</span></p>
+          <p>
+            Zakończenie: <span className="text-slate-300">{new Date(Number(campaign.endTime) * 1000).toLocaleDateString('pl-PL')}</span>
+          </p>
           {campaign.reclaimDeadline > BigInt(0) && (
-            <p className="text-amber-400">Zwrot do: <span className="text-amber-300">{new Date(Number(campaign.reclaimDeadline) * 1000).toLocaleDateString('pl-PL')}</span></p>
+            <p className="text-amber-400">
+              Zwrot do: <span className="text-amber-300">{new Date(Number(campaign.reclaimDeadline) * 1000).toLocaleDateString('pl-PL')}</span>
+            </p>
           )}
         </div>
 
@@ -174,8 +202,11 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({ campaign, onDetailsC
           />
 
           <DonateButton
-            campaignId={campaign.campaignId + 1}
+            campaignId={campaign.campaignId! + 1}
             donationAmount={donationInput}
+          />
+          <RefundButton
+            campaignId={campaign.campaignId! + 1}
           />
         </div>
       </div>

@@ -1,5 +1,4 @@
-/* components/Header.module.css */
-
+/* app/components/Header.module.css */
 .header {
   background-color: #00ADEF;
   padding: 0.75rem 1.25rem;
@@ -36,14 +35,14 @@
   align-items: center;
   justify-content: space-between;
   flex-grow: 1;
-  margin-left: 1rem; 
-  gap: 1rem; 
+  margin-left: 1rem;
+  gap: 1rem;
 }
 
 .navLeft {
   display: flex;
   align-items: center;
-  gap: 1rem; 
+  gap: 1rem;
 }
 
 .navCenter {
@@ -54,24 +53,17 @@
 .navRight {
   display: flex;
   align-items: center;
-  gap: 1.2rem; /* Dostosuj odstęp na desktopie wedle uznania */
+  gap: 1.2rem;
 }
 
-.logoContainer {
+.logoWrapper {
   display: flex;
   align-items: center;
-  flex-shrink: 0;
 }
 
-.logoWrapper { 
-  display: flex; /* Ważne dla ułożenia wewnętrznego obrazka */
-  align-items: center; /* Ważne dla wyrównania obrazka */
-  /* Reszta stylów dla logoWrapper, jeśli są, np. specyficzny padding, jeśli styl inline nie wystarcza */
-}
-
-.logoImage { 
+.logoImage {
   filter: brightness(0) invert(1);
-  display: block; /* Może pomóc uniknąć dodatkowych odstępów pod obrazkiem */
+  display: block;
 }
 
 .navLink {
@@ -88,10 +80,10 @@
 
 .navLink:hover {
   transform: scale(1.05);
-  box-shadow: 0 0 12px 0px rgba(238, 240, 239, 0.5);
+  box-shadow: 0 0 12px rgba(238, 240, 239, 0.5);
 }
 
-.iconThemeToggle { 
+.iconThemeToggle {
   background-color: transparent;
   color: white;
   border: none;
@@ -101,11 +93,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  transition:
+    background-color 0.2s ease-in-out,
+    color 0.2s ease-in-out,
+    transform 0.2s ease-in-out,
+    box-shadow 0.2s ease-in-out;
   position: relative;
 }
 
-.themeIconSvg { 
+.themeIconSvg {
   width: 22px;
   height: 22px;
 }
@@ -113,12 +109,10 @@
 .iconThemeToggle:hover {
   background-color: rgba(255, 255, 255, 0.15);
   transform: scale(1.15);
-  box-shadow: 0 0 12px 0px rgba(238, 240, 239, 0.4);
+  box-shadow: 0 0 12px rgba(238, 240, 239, 0.4);
 }
 
-.desktopThemeToggle {
-  /* Style specyficzne dla desktopu, jeśli potrzebne */
-}
+.desktopThemeToggle { }
 
 .searchBarContainer {
   display: flex;
@@ -128,9 +122,9 @@
   position: relative;
 }
 
-.searchBarShadow { 
+.searchBarShadow {
   transform: scale(1.03);
-  box-shadow: 0 0 15px 1px rgba(99, 211, 145, 0.6);
+  box-shadow: 0 0 15px rgba(99, 211, 145, 0.6);
 }
 
 .searchInput {
@@ -142,7 +136,9 @@
   font-size: 0.8rem;
   background-color: rgba(0, 0, 0, 0.12);
   color: white;
-  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  transition:
+    background-color 0.2s ease-in-out,
+    border-color 0.2s ease-in-out;
   height: 36px;
   box-sizing: border-box;
   min-width: 130px;
@@ -172,7 +168,9 @@
   cursor: pointer;
   font-size: 0.85rem;
   font-weight: 500;
-  transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+  transition:
+    background-color 0.2s ease-in-out,
+    transform 0.2s ease-in-out;
   white-space: nowrap;
   height: 36px;
   box-sizing: border-box;
@@ -190,39 +188,39 @@
   transform: scale(0.98);
 }
 
-.connectWalletButtonWrapper { 
+.connectWalletButtonWrapper {
   display: flex;
   align-items: center;
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-  border-radius: 6px; 
+  border-radius: 6px;
   position: relative;
 }
 
 .connectWalletButtonWrapper:hover {
   transform: scale(1.03);
-  box-shadow: 0 0 12px 0px rgba(99, 211, 145, 0.5);
+  box-shadow: 0 0 12px rgba(99, 211, 145, 0.5);
 }
 
-/* --- STYLE HAMBURGERA I MENU MOBILNEGO --- */
-.mobileHeaderControls { 
-  display: none; 
+/* --- MOBILE --- */
+.mobileHeaderControls {
+  display: none;
   align-items: center;
-  gap: 0.25rem; 
-  margin-left: auto; 
+  gap: 0.25rem;
+  margin-left: auto;
 }
 
-.mobileInlineThemeToggle { 
-  display: none; 
-  padding: 0.4rem; 
+.mobileInlineThemeToggle {
+  display: none;
+  padding: 0.4rem;
 }
 
-.mobileInlineThemeToggle .themeIconSvg { 
+.mobileInlineThemeToggle .themeIconSvg {
   width: 20px;
   height: 20px;
 }
 
 .hamburgerMenuButtonContainer {
-  display: none; 
+  display: none;
 }
 
 .hamburgerButton {
@@ -237,12 +235,12 @@
   z-index: 1002;
 }
 
-.hamburgerIconSvg { 
+.hamburgerIconSvg {
   width: 28px;
   height: 28px;
 }
 
-.mobileMenu { 
+.mobileMenu {
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -250,28 +248,28 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #1F4E79; 
+  background-color: #1F4E79;
   backdrop-filter: blur(3px);
   padding: 1rem;
   box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-  z-index: 1001; 
+  z-index: 1001;
   transform: translateX(100%);
-  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  overflow-y: auto; 
+  transition: transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94);
+  overflow-y: auto;
 }
 
-.mobileMenuOpen { 
+.mobileMenuOpen {
   transform: translateX(0);
 }
 
-.mobileMenuContent { 
-  padding-top: calc(28px + 1rem + 0.5rem); 
+.mobileMenuContent {
+  padding-top: calc(28px + 1rem + 0.5rem);
   display: flex;
   flex-direction: column;
-  gap: 0.75rem; 
+  gap: 0.75rem;
 }
 
-.mobileNavLink { 
+.mobileNavLink {
   color: white;
   text-decoration: none;
   padding: 0.8rem 1rem;
@@ -289,40 +287,35 @@
   transform: scale(1.01);
 }
 
-.mobileMenuItem { 
+.mobileMenuItem {
   display: flex;
-  flex-direction: column; 
-  align-items: center;   
+  flex-direction: column;
+  align-items: center;
   width: 100%;
 }
 
-.mobileMenuItem > * { 
-  width: 100%;            
-  max-width: 320px;       
-  margin-bottom: 0.5rem;  
+.mobileMenuItem > * {
+  width: 100%;
+  max-width: 320px;
+  margin-bottom: 0.5rem;
 }
 
 .mobileMenuItem > *:last-child {
   margin-bottom: 0;
 }
 
-.mobileMenuItemSpecial { 
+.mobileMenuItemSpecial {
   background-color: rgba(255,255,255,0.05);
   padding: 0.6rem;
   border-radius: 8px;
   border: 1px solid rgba(255,255,255,0.08);
 }
 
-.mobileMenuItemSpecial > * { 
-  max-width: 100%; 
-  margin-bottom: 0;
-}
-
-.mobileSearchBarContainer { 
-  flex-direction: column; 
+.mobileSearchBarContainer {
+  flex-direction: column;
   gap: 0.75rem;
-  box-shadow: none !important; 
-  transform: none !important;  
+  box-shadow: none !important;
+  transform: none !important;
   background-color: transparent;
   padding: 0;
   border: none;
@@ -330,7 +323,7 @@
 
 .mobileSearchBarContainer .searchInput,
 .mobileSearchBarContainer .searchButton {
-  width: 100%; 
+  width: 100%;
   max-width: 100%;
   min-width: unset;
   border-radius: 8px;
@@ -339,168 +332,77 @@
 }
 
 .mobileSearchBarContainer .searchInput {
-  border-right: 1px solid rgba(255, 255, 255, 0.25); 
-  border-color: rgba(255,255,255,0.25);
+  border-right: 1px solid rgba(255,255,255,0.25);
   background-color: rgba(0,0,0,0.1);
 }
 
 .mobileSearchBarContainer .searchButton {
   background-color: #52c280;
 }
+
 .mobileSearchBarContainer .searchButton:hover {
   background-color: #63D391;
 }
 
-.mobileLangButton { 
+.mobileLangButton {
   color: white;
   text-decoration: none;
   padding: 0.8rem 1rem;
-  justify-content: center;
-  text-align: center;
   width: 100%;
-  max-width: 320px; 
+  max-width: 320px;
   border-radius: 8px;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.1);
   transition: background-color 0.2s ease, transform 0.2s ease;
-  font-size: 1.0rem;
+  font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
 }
 
 .mobileLangButton:hover {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(255,255,255,0.08);
   transform: scale(1.01);
 }
 
-.connectWalletMobileWrapper { 
-  padding-top: 0.5rem; 
-  display: flex;        
-  justify-content: center; 
-  /* Selektor > w3m-button nie będzie tutaj działać zgodnie z oczekiwaniami
-     na szerokość samego przycisku z powodu Shadow DOM.
-     Wrapper sam w sobie jest już częścią .mobileMenuItem,
-     który ma max-width: 320px i width: 100% dla swoich dzieci.
-     Więc wrapper będzie miał odpowiednią szerokość, a justify-content wycentruje
-     przycisk w3m-button, jeśli jest on węższy. */
+.connectWalletMobileWrapper {
+  padding-top: 0.5rem;
+  display: flex;
+  justify-content: center;
 }
-
 
 /* --- BREAKPOINTY --- */
-/* Zmieniony breakpoint dla wcześniejszego pojawiania się hamburger menu */
-@media (max-width: 1414px) { /* NOWY BREAKPOINT */
-  .navDesktop {
-    display: none;
-  }
-  .mobileHeaderControls { 
-    display: flex;
-  }
-  .mobileInlineThemeToggle { 
-    display: flex;
-  }
-  .hamburgerMenuButtonContainer { 
-    display: flex;
-  }
-  .header { 
-    padding: 0.6rem 1rem;
-  }
-  .headerPlaceholder {
-    padding: 0.6rem 1rem;
-  }
+@media (max-width: 1414px) {
+  .navDesktop { display: none; }
+  .mobileHeaderControls { display: flex; }
+  .mobileInlineThemeToggle { display: flex; }
+  .hamburgerMenuButtonContainer { display: flex; }
+  .header { padding: 0.6rem 1rem; }
+  .headerPlaceholder { padding: 0.6rem 1rem; }
 }
 
-@media (max-width: 480px) { 
-  .mobileNavLink { 
-    font-size: 1rem;
-    padding: 0.7rem;
-  }
+@media (max-width: 480px) {
+  .mobileNavLink { font-size: 1rem; padding: 0.7rem; }
   .mobileSearchBarContainer .searchInput,
-  .mobileSearchBarContainer .searchButton { 
-    height: 40px;
-  }
-  .mobileMenuContent { 
-    padding-top: calc(28px + 0.6rem + 0.5rem);
-  }
+  .mobileSearchBarContainer .searchButton { height: 40px; }
+  .mobileMenuContent { padding-top: calc(28px + 0.6rem + 0.5rem); }
 }
 
 /* --- STYLE DLA CIEMNEGO MOTYWU --- */
-:global(html.dark) .header {
-  /* Można dodać specyficzne tło dla nagłówka w trybie ciemnym, jeśli #00ADEF nie pasuje */
-}
-
-:global(html.dark) .logoImage {
-  filter: brightness(0) invert(1); 
-}
-
-:global(html.dark) .navLink:hover {
-  box-shadow: 0 0 12px 0px rgba(100, 220, 150, 0.4); 
-}
-
-:global(html.dark) .iconThemeToggle:hover {
-  background-color: rgba(0, 0, 0, 0.25); 
-  box-shadow: 0 0 12px 0px rgba(100, 220, 150, 0.3);
-}
-
-:global(html.dark) .searchInput {
-  background-color: rgba(255, 255, 255, 0.06);
-  color: #e2e8f0;
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-:global(html.dark) .searchInput::placeholder {
-  color: rgba(255, 255, 255, 0.5);
-}
-
-:global(html.dark) .searchInput:focus {
-  border-color: rgba(255, 255, 255, 0.5);
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-:global(html.dark) .searchBarShadow {
-  box-shadow: 0 0 15px 1px rgba(100, 220, 150, 0.5);
-}
-
-:global(html.dark) .connectWalletButtonWrapper:hover {
-  box-shadow: 0 0 12px 0px rgba(100, 220, 150, 0.4);
-}
-
-:global(html.dark) .mobileMenu { 
-  background-color: #143852; 
-}
-
-:global(html.dark) .mobileNavLink { 
-  color: #cbd5e1; 
-  border-color: rgba(255,255,255,0.08);
-}
-
-:global(html.dark) .mobileNavLink:hover {
-  background-color: rgba(255, 255, 255, 0.06);
-}
-
-:global(html.dark) .mobileMenuItemSpecial { 
-  background-color: rgba(255,255,255,0.03);
-  border-color: rgba(255,255,255,0.06);
-}
-
-:global(html.dark) .mobileSearchBarContainer .searchInput { 
-  border-color: rgba(255,255,255,0.2);
-  background-color: rgba(0,0,0,0.08); 
-  color: #e2e8f0; 
-}
-
-:global(html.dark) .mobileSearchBarContainer .searchButton { 
-  background-color: #47ad71; 
-}
-:global(html.dark) .mobileSearchBarContainer .searchButton:hover {
-  background-color: #52c280; 
-}
-
-:global(html.dark) .mobileLangButton { 
-  color: #cbd5e1;
-  border-color: rgba(255,255,255,0.08);
-  background-color: rgba(0,0,0,0.1); 
-}
-
-:global(html.dark) .mobileLangButton:hover {
-  background-color: rgba(255, 255, 255, 0.06);
-}
+:global(html.dark) .header { }
+:global(html.dark) .logoImage { filter: brightness(0) invert(1); }
+:global(html.dark) .navLink:hover { box-shadow: 0 0 12px rgba(100,220,150,0.4); }
+:global(html.dark) .iconThemeToggle:hover { background-color: rgba(0,0,0,0.25); box-shadow:0 0 12px rgba(100,220,150,0.3); }
+:global(html.dark) .searchInput { background-color: rgba(255,255,255,0.06); color:#e2e8f0; border-color:rgba(255,255,255,0.2); }
+:global(html.dark) .searchInput::placeholder { color: rgba(255,255,255,0.5); }
+:global(html.dark) .searchInput:focus { background-color: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.5); }
+:global(html.dark) .searchBarShadow { box-shadow:0 0 15px rgba(100,220,150,0.5); }
+:global(html.dark) .connectWalletButtonWrapper:hover { box-shadow:0 0 12px rgba(100,220,150,0.4); }
+:global(html.dark) .mobileMenu { background-color:#143852; }
+:global(html.dark) .mobileNavLink { color:#cbd5e1; border-color:rgba(255,255,255,0.08); }
+:global(html.dark) .mobileNavLink:hover { background-color:rgba(255,255,255,0.06); }
+:global(html.dark) .mobileMenuItemSpecial { background-color:rgba(255,255,255,0.03); border-color:rgba(255,255,255,0.06); }
+:global(html.dark) .mobileSearchBarContainer .searchInput { background-color:rgba(0,0,0,0.08); color:#e2e8f0; border-color:rgba(255,255,255,0.2); }
+:global(html.dark) .mobileSearchBarContainer .searchButton { background-color:#47ad71; }
+:global(html.dark) .mobileSearchBarContainer .searchButton:hover { background-color:#52c280; }
+:global(html.dark) .mobileLangButton { background-color:rgba(0,0,0,0.1); color:#cbd5e1; border-color:rgba(255,255,255,0.08); }
+:global(html.dark) .mobileLangButton:hover { background-color:rgba(255,255,255,0.06); }
