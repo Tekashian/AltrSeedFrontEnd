@@ -1,95 +1,136 @@
 // src/app/page.tsx
-"use client"; // Komponenty używające hooków muszą być komponentami klienckimi
+"use client";
 
-import React from 'react';
-import { CampaignCard } from '../components/CampaignCard'; // Upewnij się, że ścieżka jest poprawna
-import { useGetAllCampaigns, type Campaign } from '../hooks/useCrowdfund'; // Upewnij się, że ścieżka jest poprawna
-import Footer from '../components/Footer'; // Importuj komponent stopki
+import React, { useMemo } from "react";
+import Image from "next/image";
+import Slider from "react-slick";
+import Footer from "../components/Footer";
+import  CampaignCard  from "../components/CampaignCard";
+import { useGetAllCampaigns, type Campaign } from "../hooks/useCrowdfund";
+
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
 export default function HomePage() {
-  const { campaigns, isLoading, error, refetchCampaigns } = useGetAllCampaigns();
+  const { campaigns = [], isLoading, error, refetchCampaigns } =
+    useGetAllCampaigns();
 
-  // Handle click for campaign details (placeholder)
-  const handleDetailsClick = (campaignId: string | number) => {
-    console.log(`Wyświetl szczegóły kampanii o ID: ${campaignId}`);
-    // Tutaj możesz dodać logikę do nawigacji do strony szczegółów kampanii
-    // np. router.push(`/campaign/${campaignId}`);
-  };
+  // posortuj malejąco po creationTimestamp
+  const sortedCampaigns = useMemo(
+    () =>
+      [...campaigns].sort(
+        (a, b) => Number(b.creationTimestamp) - Number(a.creationTimestamp)
+      ),
+    [campaigns]
+  );
 
-  // Handle click for campaign donation (placeholder)
-  const handleDonateClick = (campaignId: string | number) => {
-    console.log(`Rozpocznij proces darowizny dla kampanii o ID: ${campaignId}`);
-    // Tutaj możesz otworzyć modal do wpłacania darowizny lub nawigować do formularza
+  // wybierz max 6 z postępem > 0 i posortuj po %
+  const topProgress = useMemo(() => {
+    return campaigns
+      .filter((c) => c.raisedAmount > BigInt(0) && c.targetAmount > BigInt(0))
+      .sort((a, b) => {
+        const pa = Number(a.raisedAmount) / Number(a.targetAmount);
+        const pb = Number(b.raisedAmount) / Number(b.targetAmount);
+        return pb - pa;
+      })
+      .slice(0, 6);
+  }, [campaigns]);
+
+  const handleDetailsClick = (id: number) =>
+    console.log("Szczegóły kampanii:", id);
+  const handleDonateClick = (id: number) =>
+    console.log("Donate to campaign:", id);
+
+  // konfiguracja slidera
+  const sliderSettings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 3,
+    slidesToScroll: 1,
+    centerMode: true,
+    centerPadding: "0px",
+    autoplay: true,
+    autoplaySpeed: 3000,
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-900 text-white"> {/* Dodanie tła i tekstu dla całej strony */}
-      {/* Header lub Navbar (zakładamy, że jest gdzieś indziej) */}
-      {/* <Header /> */} 
-
-      <main className="flex-grow container mx-auto p-4 md:p-8"> {/* flex-grow pozwoli main rozciągnąć się i "pchnąć" footer na dół */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-teal-400"> {/* Zmieniony kolor nagłówka dla lepszego kontrastu */}
-            Kampanie Crowdfundingowe
-          </h1>
+    <div className="flex flex-col min-h-screen bg-[#E0F0FF] text-[#1F4E79]">
+      {/* Hero banner */}
+      <div className="relative w-full h-[50vh]">
+        <Image
+          src="/images/BanerAltrSeed.jpg"
+          alt="Baner AltrSeed"
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 flex items-center justify-center">
           <button
-            onClick={() => refetchCampaigns()}
-            className="px-4 py-2 bg-slate-700 text-slate-200 rounded hover:bg-slate-600 transition-colors duration-200 text-sm"
-            title="Odśwież listę kampanii"
+            className="px-8 py-4 text-xl font-semibold rounded"
+            style={{ backgroundColor: "#68CC89", color: "#FFFFFF" }}
+            onClick={() => console.log("Navigate to create campaign")}
           >
-            Odśwież
+            Create Campaign
           </button>
         </div>
+      </div>
 
-        {isLoading && (
-          <div className="text-center py-10">
-            <p className="text-lg text-slate-400">Ładowanie kampanii z blockchaina...</p>
-            {/* Możesz dodać tu animację ładowania (spinner) */}
-            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-teal-500 mx-auto mt-4"></div>
-          </div>
+      <main className="container mx-auto flex-grow px-4 py-8">
+        {/* Slider: Najbliżej celu */}
+        {topProgress.length > 0 && (
+          <section className="mb-12">
+            <h2 className="text-2xl font-bold mb-4">Najbliżej celu</h2>
+            <Slider {...sliderSettings}>
+              {topProgress.map((c) => (
+                <div key={c.campaignId} className="px-2">
+                  <CampaignCard
+                    campaign={c}
+                    onDetailsClick={handleDetailsClick}
+                    onDonateClick={handleDonateClick}
+                  />
+                </div>
+              ))}
+            </Slider>
+          </section>
         )}
 
-        {error && (
-          <div className="text-center py-10 text-red-400">
-            <p className="text-lg font-semibold">Wystąpił błąd podczas ładowania kampanii:</p>
-            <p className="text-sm mt-2 bg-red-900/30 p-3 rounded-md border border-red-700">{error.message}</p>
+        {/* Wszystkie kampanie */}
+        <section>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold">Wszystkie kampanie</h2>
             <button
+              className="px-4 py-2 rounded"
+              style={{ backgroundColor: "#68CC89", color: "#FFFFFF" }}
               onClick={() => refetchCampaigns()}
-              className="mt-4 px-6 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
             >
-              Spróbuj ponownie
+              Odśwież
             </button>
           </div>
-        )}
 
-        {!isLoading && !error && (!campaigns || campaigns.length === 0) && (
-          <div className="text-center py-10">
-            <p className="text-lg text-slate-400">Nie znaleziono żadnych aktywnych kampanii.</p>
-            {/* Możesz tu dodać przycisk do tworzenia nowej kampanii, jeśli masz taką funkcjonalność */}
-            <button
-              // onClick={() => router.push('/create-campaign')}
-              className="mt-4 px-6 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
-            >
-              Utwórz nową kampanię
-            </button>
-          </div>
-        )}
-
-        {!isLoading && !error && campaigns && campaigns.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {campaigns.map((campaign) => (
-              <CampaignCard 
-                key={campaign.campaignId} 
-                campaign={campaign} 
-                onDetailsClick={handleDetailsClick} // Przekazujemy handler
-                onDonateClick={handleDonateClick}   // Przekazujemy handler
-              />
-            ))}
-          </div>
-        )}
+          {isLoading && <p>Ładowanie kampanii…</p>}
+          {error && (
+            <p className="text-red-600">Błąd: {error.message}</p>
+          )}
+          {!isLoading && !error && sortedCampaigns.length === 0 && (
+            <p>Brak kampanii do wyświetlenia.</p>
+          )}
+          {!isLoading && !error && sortedCampaigns.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {sortedCampaigns.map((campaign) => (
+                <CampaignCard
+                  key={campaign.campaignId}
+                  campaign={campaign}
+                  onDetailsClick={handleDetailsClick}
+                  onDonateClick={handleDonateClick}
+                />
+              ))}
+            </div>
+          )}
+        </section>
       </main>
 
-      <Footer /> {/* Dodanie komponentu stopki na końcu */}
+      <Footer />
     </div>
   );
 }
