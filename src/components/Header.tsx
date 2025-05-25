@@ -7,32 +7,79 @@ import styles from './Header.module.css';
 
 // --- IKONY ---
 const SunIcon = () => (
-  <svg className={styles.themeIconSvg} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-6.364-.386 1.591-1.591M3 12h2.25m.386-6.364 1.591 1.591" />
+  <svg
+    className={styles.themeIconSvg}
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.5}
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-6.364-.386 1.591-1.591M3 12h2.25m.386-6.364 1.591 1.591"
+    />
   </svg>
 );
 
 const MoonIcon = () => (
-  <svg className={styles.themeIconSvg} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25c0 5.385 4.365 9.75 9.75 9.75 2.138 0 4.123-.693 5.752-1.848Z" />
+  <svg
+    className={styles.themeIconSvg}
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.5}
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25c0 5.385 4.365 9.75 9.75 9.75 2.138 0 4.123-.693 5.752-1.848Z"
+    />
   </svg>
 );
 
 const HamburgerIcon = () => (
-  <svg className={styles.hamburgerIconSvg} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+  <svg
+    className={styles.hamburgerIconSvg}
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.5}
+    stroke="currentColor"
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
   </svg>
 );
 
 const CloseIcon = () => (
-  <svg className={styles.hamburgerIconSvg} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+  <svg
+    className={styles.hamburgerIconSvg}
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.5}
+    stroke="currentColor"
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
   </svg>
 );
 
 const TranslatorIcon = () => (
-  <svg className={styles.themeIconSvg} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 21l5.25-11.25L21 21m-9.75-4.5H21m-12-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+  <svg
+    className={styles.themeIconSvg}
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.5}
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M10.5 21l5.25-11.25L21 21m-9.75-4.5H21m-12-3a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
   </svg>
 );
 
@@ -47,7 +94,9 @@ const SearchBar = ({
   isMobile?: boolean;
 }) => (
   <div
-    className={`${styles.searchBarContainer} ${isFocused ? styles.searchBarShadow : ''} ${isMobile ? styles.mobileSearchBarContainer : ''}`}
+    className={`${styles.searchBarContainer} ${isFocused ? styles.searchBarShadow : ''} ${
+      isMobile ? styles.mobileSearchBarContainer : ''
+    }`}
     onMouseEnter={!isMobile ? () => setFocused(true) : undefined}
     onMouseLeave={!isMobile ? () => setFocused(false) : undefined}
   >
@@ -78,7 +127,6 @@ const Header = () => {
   const placeholderLogoWidth = writtenLogoWidth;
   const placeholderLogoHeight = writtenLogoHeight;
 
-  const hoverBoxShadow = '0 0 12px rgba(99, 211, 145, 0.5)';
   const darkHoverBoxShadow = '0 0 12px rgba(100, 220, 150, 0.4)';
 
   useEffect(() => {
@@ -114,7 +162,7 @@ const Header = () => {
   }, [isMobileMenuOpen]);
 
   const toggleDarkMode = () => {
-    setDarkMode(prev => {
+    setDarkMode((prev) => {
       const next = !prev;
       document.documentElement.classList.toggle('dark', next);
       localStorage.setItem('theme', next ? 'dark' : 'light');
@@ -123,18 +171,25 @@ const Header = () => {
   };
 
   const handleLanguageChange = () => console.log('Language change clicked');
-  const toggleMobileMenu = () => setIsMobileMenuOpen(m => !m);
+  const toggleMobileMenu = () => setIsMobileMenuOpen((m) => !m);
 
   if (!isMounted) {
     return (
-      <header className={styles.headerPlaceholder} style={{ minHeight: '70px' }}>
+      <header
+        className={styles.headerPlaceholder}
+        style={{ minHeight: '70px', position: 'relative' }}
+      >
         <div style={{ width: `${placeholderLogoWidth}px`, height: `${placeholderLogoHeight}px` }} />
       </header>
     );
   }
 
   return (
-    <header className={styles.header} ref={headerRef}>
+    <header
+      className={styles.header}
+      ref={headerRef}
+      style={{ position: 'relative' }}
+    >
       <nav className={styles.nav}>
         <div className={styles.logoContainer}>
           <Link
@@ -169,13 +224,35 @@ const Header = () => {
             <Link href="/whitepaper" className={styles.navLink}>WhitePaper</Link>
             <Link href="/contact" className={styles.navLink}>Contact</Link>
           </div>
-          <div className={styles.navCenter} />
+          <div className={styles.navCenter}>
+            <button
+              onClick={() => console.log('Navigate to create campaign')}
+              className={`${styles.navActionButton} transform transition duration-200 ease-in-out hover:scale-105 hover:shadow-[0_0_12px_rgba(99,211,145,0.5)]`}
+              style={{
+                backgroundColor: '#68CC89',
+                color: '#FFFFFF',
+                padding: '1rem 2rem',
+                fontSize: '1.25rem',
+                borderRadius: '9999px',
+              }}
+            >
+              Create Campaign
+            </button>
+          </div>
           <div className={styles.navRight}>
             <SearchBar isFocused={isSearchFocused} setFocused={setIsSearchFocused} />
-            <button onClick={handleLanguageChange} className={`${styles.iconThemeToggle} ${styles.desktopThemeToggle}`} title="Change language">
+            <button
+              onClick={handleLanguageChange}
+              className={`${styles.iconThemeToggle} ${styles.desktopThemeToggle}`}
+              title="Change language"
+            >
               <TranslatorIcon />
             </button>
-            <button onClick={toggleDarkMode} className={`${styles.iconThemeToggle} ${styles.desktopThemeToggle}`} title={darkMode ? 'Light Mode' : 'Dark Mode'}>
+            <button
+              onClick={toggleDarkMode}
+              className={`${styles.iconThemeToggle} ${styles.desktopThemeToggle}`}
+              title={darkMode ? 'Light Mode' : 'Dark Mode'}
+            >
               {darkMode ? <SunIcon /> : <MoonIcon />}
             </button>
             <div className={styles.connectWalletButtonWrapper}>
@@ -185,14 +262,26 @@ const Header = () => {
         </div>
 
         <div className={styles.mobileHeaderControls}>
-          <button onClick={handleLanguageChange} className={`${styles.iconThemeToggle} ${styles.mobileInlineThemeToggle}`} title="Change language">
+          <button
+            onClick={handleLanguageChange}
+            className={`${styles.iconThemeToggle} ${styles.mobileInlineThemeToggle}`}
+            title="Change language"
+          >
             <TranslatorIcon />
           </button>
-          <button onClick={toggleDarkMode} className={`${styles.iconThemeToggle} ${styles.mobileInlineThemeToggle}`} title={darkMode ? 'Light Mode' : 'Dark Mode'}>
+          <button
+            onClick={toggleDarkMode}
+            className={`${styles.iconThemeToggle} ${styles.mobileInlineThemeToggle}`}
+            title={darkMode ? 'Light Mode' : 'Dark Mode'}
+          >
             {darkMode ? <SunIcon /> : <MoonIcon />}
           </button>
           <div className={styles.hamburgerMenuButtonContainer}>
-            <button onClick={toggleMobileMenu} className={styles.hamburgerButton} aria-expanded={isMobileMenuOpen}>
+            <button
+              onClick={toggleMobileMenu}
+              className={styles.hamburgerButton}
+              aria-expanded={isMobileMenuOpen}
+            >
               {isMobileMenuOpen ? <CloseIcon /> : <HamburgerIcon />}
             </button>
           </div>
@@ -210,12 +299,30 @@ const Header = () => {
             <SearchBar isFocused={isSearchFocused} setFocused={setIsSearchFocused} isMobile />
           </div>
           <div className={styles.mobileMenuItem}>
-            <button onClick={() => { handleLanguageChange(); toggleMobileMenu(); }} className={styles.mobileLangButton}>
+            <button
+              onClick={() => { handleLanguageChange(); toggleMobileMenu(); }}
+              className={styles.mobileLangButton}
+            >
               Change Language
             </button>
           </div>
           <div className={`${styles.mobileMenuItem} ${styles.connectWalletMobileWrapper}`}>
             <w3m-button />
+          </div>
+          <div className={styles.mobileMenuItem}>
+            <button
+              onClick={() => { console.log('Navigate to create campaign'); toggleMobileMenu(); }}
+              className={`${styles.mobileActionButton} transform transition duration-200 ease-in-out hover:scale-105 hover:shadow-[0_0_12px_rgba(99,211,145,0.5)]`}
+              style={{
+                backgroundColor: '#68CC89',
+                color: '#FFFFFF',
+                padding: '1rem 2rem',
+                fontSize: '1.25rem',
+                borderRadius: '9999px',
+              }}
+            >
+              Create Campaign
+            </button>
           </div>
         </div>
       </div>
