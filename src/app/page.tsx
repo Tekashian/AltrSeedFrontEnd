@@ -4,6 +4,7 @@
 import React, { useMemo } from "react";
 import Image from "next/image";
 import Slider from "react-slick";
+import { useRouter } from "next/navigation";
 import Footer from "../components/Footer";
 import CampaignCard from "../components/CampaignCard";
 import { useGetAllCampaigns, type Campaign } from "../hooks/useCrowdfund";
@@ -12,6 +13,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
 export default function HomePage() {
+  const router = useRouter();
   const { campaigns = [], isLoading, error, refetchCampaigns } =
     useGetAllCampaigns();
 
@@ -62,33 +64,50 @@ export default function HomePage() {
   };
 
   return (
-    // dodajemy overflow-x-hidden żeby nic nie „wystawało” na boki
-    <div className="flex flex-col min-h-screen bg-[#E0F0FF] text-[#1F4E79] overflow-x-hidden">
-      {/* Hero banner – absolutnie na pełną szerokość ekranu */}
-      <div className="relative w-screen h-[50vh]">
+    <div className="flex flex-col min-h-screen bg-[#E0F0FF] text-[#1F4E79]">
+      {/* Hero banner */}
+      <div className="relative w-full h-[50vh]">
         <Image
           src="/images/BanerAltrSeed.jpg"
           alt="Baner AltrSeed"
           fill
           className="object-cover"
           priority
-          // maksymalna jakość
-          quality={100}
-          // zawsze 100vw, by Next wiedział że zajmuje 100% viewportu
-          sizes="100vw"
         />
-        {/* Tekst na środku banera */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
-          <h1 className="text-4xl font-bold text-white text-center drop-shadow-md">
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+          <h1 className="text-4xl font-bold text-white">
             Have an idea? Need support?
           </h1>
-          <p className="mt-2 text-xl text-white text-center drop-shadow-sm">
+          <p className="mt-2 text-lg text-white">
             Launch your campaign today and make your vision a reality!
           </p>
         </div>
       </div>
 
-      <main className="container mx-auto flex-grow px-4 py-8">
+      {/* Sticky button: przekierowuje do create-campaign */}
+      <div
+        className="
+          sticky top-[70px] z-50 pointer-events-auto flex justify-center bg-transparent
+          -mt-[50px] lg:-mt-[80px]
+        "
+      >
+        <button
+          onClick={() => router.push("/create-campaign")}
+          className="
+            bg-[#68CC89] text-white
+            transform transition duration-200 ease-in-out
+            hover:scale-105 hover:shadow-[0_0_12px_rgba(99,211,145,0.5)]
+            px-6 sm:px-8 md:px-10 py-2 sm:py-3 md:py-4
+            text-lg sm:text-xl md:text-2xl
+            rounded-full
+          "
+        >
+          Create Campaign
+        </button>
+      </div>
+
+      {/* Zawartość w kontenerze - dodałem dodatkowy padding-top, aby nie zasłaniać sekcji */}
+      <main className="container mx-auto px-4 pt-24 pb-8">
         {/* Slider: Najbliżej celu */}
         {topProgress.length > 0 && (
           <section className="mb-12">

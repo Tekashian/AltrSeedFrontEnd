@@ -83,7 +83,7 @@ const TranslatorIcon = () => (
   </svg>
 );
 
-// --- KOMPONENTY PODRZĘDNE ---
+// --- KOMPONENT PODRZĘDNY ---
 const SearchBar = ({
   isFocused,
   setFocused,
@@ -94,9 +94,11 @@ const SearchBar = ({
   isMobile?: boolean;
 }) => (
   <div
-    className={`${styles.searchBarContainer} ${isFocused ? styles.searchBarShadow : ''} ${
-      isMobile ? styles.mobileSearchBarContainer : ''
-    }`}
+    className={`
+      ${styles.searchBarContainer}
+      ${isFocused ? styles.searchBarShadow : ''}
+      ${isMobile ? styles.mobileSearchBarContainer : ''}
+    `}
     onMouseEnter={!isMobile ? () => setFocused(true) : undefined}
     onMouseLeave={!isMobile ? () => setFocused(false) : undefined}
   >
@@ -122,11 +124,7 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
 
-  const writtenLogoHeight = 30;
-  const writtenLogoWidth = 140;
-  const placeholderLogoWidth = writtenLogoWidth;
-  const placeholderLogoHeight = writtenLogoHeight;
-
+  // cień przy hover na logo
   const darkHoverBoxShadow = '0 0 12px rgba(100, 220, 150, 0.4)';
 
   useEffect(() => {
@@ -177,10 +175,8 @@ const Header = () => {
     return (
       <header
         className={styles.headerPlaceholder}
-        style={{ minHeight: '70px', position: 'relative' }}
-      >
-        <div style={{ width: `${placeholderLogoWidth}px`, height: `${placeholderLogoHeight}px` }} />
-      </header>
+        style={{ minHeight: '49px', position: 'relative' }}
+      />
     );
   }
 
@@ -208,8 +204,8 @@ const Header = () => {
             <Image
               src="/images/LogoPisaneAltrSeed.png"
               alt="AltrSeed"
-              width={writtenLogoWidth}
-              height={writtenLogoHeight}
+              width={140}
+              height={30}
               className={styles.logoImage}
               priority
             />
@@ -224,23 +220,12 @@ const Header = () => {
             <Link href="/whitepaper" className={styles.navLink}>WhitePaper</Link>
             <Link href="/contact" className={styles.navLink}>Contact</Link>
           </div>
-          <div className={styles.navCenter}>
-            <button
-              onClick={() => console.log('Navigate to create campaign')}
-              className={`${styles.navActionButton} transform transition duration-200 ease-in-out hover:scale-105 hover:shadow-[0_0_12px_rgba(99,211,145,0.5)]`}
-              style={{
-                backgroundColor: '#68CC89',
-                color: '#FFFFFF',
-                padding: '1rem 2rem',
-                fontSize: '1.25rem',
-                borderRadius: '9999px',
-              }}
-            >
-              Create Campaign
-            </button>
-          </div>
+
+          <div className={styles.navCenter} />
+
           <div className={styles.navRight}>
             <SearchBar isFocused={isSearchFocused} setFocused={setIsSearchFocused} />
+
             <button
               onClick={handleLanguageChange}
               className={`${styles.iconThemeToggle} ${styles.desktopThemeToggle}`}
@@ -248,6 +233,7 @@ const Header = () => {
             >
               <TranslatorIcon />
             </button>
+
             <button
               onClick={toggleDarkMode}
               className={`${styles.iconThemeToggle} ${styles.desktopThemeToggle}`}
@@ -255,12 +241,14 @@ const Header = () => {
             >
               {darkMode ? <SunIcon /> : <MoonIcon />}
             </button>
+
             <div className={styles.connectWalletButtonWrapper}>
               <w3m-button />
             </div>
           </div>
         </div>
 
+        {/* mobile */}
         <div className={styles.mobileHeaderControls}>
           <button
             onClick={handleLanguageChange}
@@ -288,44 +276,28 @@ const Header = () => {
         </div>
       </nav>
 
-      <div className={`${styles.mobileMenu} ${isMobileMenuOpen ? styles.mobileMenuOpen : ''}`}>
-        <div className={styles.mobileMenuContent}>
-          <Link href="/startups" className={styles.mobileNavLink} onClick={toggleMobileMenu}>Startups</Link>
-          <Link href="/charities" className={styles.mobileNavLink} onClick={toggleMobileMenu}>Charities</Link>
-          <Link href="/my-account" className={styles.mobileNavLink} onClick={toggleMobileMenu}>My Account</Link>
-          <Link href="/whitepaper" className={styles.mobileNavLink} onClick={toggleMobileMenu}>WhitePaper</Link>
-          <Link href="/contact" className={styles.mobileNavLink} onClick={toggleMobileMenu}>Contact</Link>
-          <div className={`${styles.mobileMenuItem} ${styles.mobileMenuItemSpecial}`}>
-            <SearchBar isFocused={isSearchFocused} setFocused={setIsSearchFocused} isMobile />
-          </div>
-          <div className={styles.mobileMenuItem}>
-            <button
-              onClick={() => { handleLanguageChange(); toggleMobileMenu(); }}
-              className={styles.mobileLangButton}
-            >
-              Change Language
-            </button>
-          </div>
-          <div className={`${styles.mobileMenuItem} ${styles.connectWalletMobileWrapper}`}>
-            <w3m-button />
-          </div>
-          <div className={styles.mobileMenuItem}>
-            <button
-              onClick={() => { console.log('Navigate to create campaign'); toggleMobileMenu(); }}
-              className={`${styles.mobileActionButton} transform transition duration-200 ease-in-out hover:scale-105 hover:shadow-[0_0_12px_rgba(99,211,145,0.5)]`}
-              style={{
-                backgroundColor: '#68CC89',
-                color: '#FFFFFF',
-                padding: '1rem 2rem',
-                fontSize: '1.25rem',
-                borderRadius: '9999px',
-              }}
-            >
-              Create Campaign
-            </button>
+      {isMobileMenuOpen && (
+        <div className={`${styles.mobileMenu} ${styles.mobileMenuOpen}`}>
+          <div className={styles.mobileMenuContent}>
+            <Link href="/startups" className={styles.mobileNavLink} onClick={toggleMobileMenu}>Startups</Link>
+            <Link href="/charities" className={styles.mobileNavLink} onClick={toggleMobileMenu}>Charities</Link>
+            <Link href="/my-account" className={styles.mobileNavLink} onClick={toggleMobileMenu}>My Account</Link>
+            <Link href="/whitepaper" className={styles.mobileNavLink} onClick={toggleMobileMenu}>WhitePaper</Link>
+            <Link href="/contact" className={styles.mobileNavLink} onClick={toggleMobileMenu}>Contact</Link>
+            <div className={`${styles.mobileMenuItem} ${styles.mobileMenuItemSpecial}`}>
+              <SearchBar isFocused={isSearchFocused} setFocused={setIsSearchFocused} isMobile />
+            </div>
+            <div className={styles.mobileMenuItem}>
+              <button onClick={() => { handleLanguageChange(); toggleMobileMenu(); }} className={styles.mobileLangButton}>
+                Change Language
+              </button>
+            </div>
+            <div className={`${styles.mobileMenuItem} ${styles.connectWalletMobileWrapper}`}>
+              <w3m-button />
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </header>
   );
 };

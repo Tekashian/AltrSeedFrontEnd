@@ -1,7 +1,8 @@
 /* app/components/Header.module.css */
 .header {
   background-color: #00ADEF;
-  padding: 0.75rem 1.25rem;
+  /* padding zmniejszone o ~30%: z 0.75rem → 0.525rem, z 1.25rem → 0.875rem */
+  padding: 0.00001rem 0.975rem;
   color: white;
   transition: padding 0.3s ease-in-out;
   position: relative;
@@ -10,7 +11,7 @@
 
 .headerPlaceholder {
   background-color: #00ADEF;
-  padding: 0.75rem 1.25rem;
+  padding: 0.525rem 0.875rem;
   color: white;
   display: flex;
   align-items: center;
@@ -20,10 +21,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  min-height: 42px;
+  /* min-height zmniejszone o ~30%: z 42px → 30px */
+  min-height: 30px;
   width: 100%;
 }
-
 .logoContainer {
   display: flex;
   align-items: center;
