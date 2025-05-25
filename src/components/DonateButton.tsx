@@ -1,3 +1,4 @@
+// src/components/DonateButton.tsx
 'use client';
 
 import React, { useState } from 'react';
@@ -9,12 +10,19 @@ import { parseUnits } from 'viem';
 interface DonateButtonProps {
   campaignId: number;
   donationAmount: string;
+  className?: string;
+  children?: React.ReactNode;
 }
 
 const USDC_ADDRESS = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238';
 const CROWDFUND_ADDRESS = '0x768b51618dBb234629B84a224f630E2a23Ee2Bbc';
 
-const DonateButton: React.FC<DonateButtonProps> = ({ campaignId, donationAmount }) => {
+const DonateButton: React.FC<DonateButtonProps> = ({
+  campaignId,
+  donationAmount,
+  className,
+  children
+}) => {
   const { address } = useAccount();
   const { writeContractAsync } = useWriteContract();
   const [step, setStep] = useState<'idle' | 'approving' | 'donating' | 'done'>('idle');
@@ -63,16 +71,16 @@ const DonateButton: React.FC<DonateButtonProps> = ({ campaignId, donationAmount 
       <button
         onClick={handleDonateFlow}
         disabled={step !== 'idle'}
-        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition disabled:opacity-50"
+        className={`px-6 py-3 bg-[#68CC89] text-white text-lg font-semibold rounded-lg hover:bg-[#5BBE7A] transition disabled:opacity-50 ${className || ''}`}
       >
-        {step === 'idle' && 'Donate'}
+        {step === 'idle' && (children || 'Donate')}
         {step === 'approving' && 'Approving...'}
         {step === 'donating' && 'Donating...'}
         {step === 'done' && 'Thank you! ✅'}
       </button>
 
       {txHash && (
-        <p className="text-sm text-green-500">
+        <p className="text-sm text-[#1F4E79]">
           TX:{' '}
           <a
             href={`https://sepolia.etherscan.io/tx/${txHash}`}

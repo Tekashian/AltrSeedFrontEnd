@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import { useAccount } from 'wagmi'
 import { type Campaign } from '../hooks/useCrowdfund'
 import DonateButton from './DonateButton'
@@ -12,7 +13,8 @@ interface CampaignCardProps {
   campaign: Campaign
 }
 
-const USDC_TOKEN_ADDRESS_SEPOLIA = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
+const USDC_TOKEN_ADDRESS_SEPOLIA =
+  '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
 const IPFS_GATEWAY_PREFIX = 'https://ipfs.io/ipfs/'
 
 interface CampaignMetadata {
@@ -23,60 +25,58 @@ interface CampaignMetadata {
 
 const getCampaignStatusText = (status: number): string => {
   switch (status) {
-    case 0:
-      return 'Aktywna'
-    case 1:
-      return 'Zakończona'
-    case 2:
-      return 'Nieudana'
-    case 3:
-      return 'Zamykanie'
-    case 4:
-      return 'Zamknięta'
-    default:
-      return `Status (${status})`
+    case 0: return 'Aktywna'
+    case 1: return 'Zakończona'
+    case 2: return 'Nieudana'
+    case 3: return 'Zamykanie'
+    case 4: return 'Zamknięta'
+    default: return `Status (${status})`
   }
 }
 
 const getCampaignTypeText = (campaignType: number): string => {
   switch (campaignType) {
-    case 0:
-      return 'Startup'
-    case 1:
-      return 'Charytatywna'
-    default:
-      return `Typ (${campaignType})`
+    case 0: return 'Startup'
+    case 1: return 'Charytatywna'
+    default: return `Typ (${campaignType})`
   }
 }
 
-const formatAmount = (amount: bigint | undefined | null, decimals: number = 6): string => {
+const formatAmount = (
+  amount: bigint | undefined | null,
+  decimals: number = 6
+): string => {
   if (typeof amount !== 'bigint') return '0.00'
   const divisor = BigInt(10) ** BigInt(decimals)
   const integerPart = amount / divisor
   const fractionalPart = amount % divisor
-  const frac = fractionalPart.toString().padStart(decimals, '0').slice(0, 2)
+  const frac = fractionalPart
+    .toString()
+    .padStart(decimals, '0')
+    .slice(0, 2)
   return `${integerPart}.${frac}`
 }
 
 const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
+  const router = useRouter()
   const { address } = useAccount()
   const [metadata, setMetadata] = useState<CampaignMetadata | null>(null)
   const [isLoadingMetadata, setIsLoadingMetadata] = useState(true)
   const [metadataError, setMetadataError] = useState<string | null>(null)
   const [donationInput, setDonationInput] = useState('')
 
-  // Wyciągamy CID i ID do stałych,
-  // żeby tablica zależności miała zawsze tę samą długość
+  // Stałe dla deps
   const cid = campaign.dataCID.trim() || ''
   const idx = campaign.campaignId ?? 0
 
+  // Fetch metadata from IPFS
   useEffect(() => {
     setIsLoadingMetadata(true)
     setMetadata(null)
     setMetadataError(null)
 
     if (!cid) {
-      setMetadataError('Brak identyfikatora CID.')
+      setMetadataError(null)
       setIsLoadingMetadata(false)
       return
     }
@@ -87,35 +87,58 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
         return res.json()
       })
       .then((data: any) => {
-        if (typeof data.title === 'string' && typeof data.description === 'string') {
-          setMetadata({ title: data.title, description: data.description })
+        if (
+          typeof data.title === 'string' &&
+          typeof data.description === 'string'
+        ) {
+          setMetadata({
+            title: data.title,
+            description: data.description,
+            image: data.image
+          })
         } else {
-          setMetadataError('Niekompletne metadane z IPFS.')
+          setMetadataError(null)
         }
       })
       .catch(() => {
-        setMetadataError('Błąd pobierania metadanych.')
+        setMetadataError(null)
       })
       .finally(() => {
         setIsLoadingMetadata(false)
       })
-  }, [cid, idx]) // <-- zawsze dwa elementy
+  }, [cid, idx])
 
-  const progress = campaign.targetAmount > 0n
-    ? Number((campaign.raisedAmount * 10000n) / campaign.targetAmount) / 100
-    : 0
+  // Polling: refresh cards every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      router.refresh()
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [router])
 
-  const displayToken = campaign.acceptedToken.toLowerCase() === USDC_TOKEN_ADDRESS_SEPOLIA.toLowerCase()
-    ? 'USDC'
-    : campaign.acceptedToken.slice(0, 6) + '…'
+  const progress =
+    campaign.targetAmount > 0n
+      ? Number((campaign.raisedAmount * 10000n) / campaign.targetAmount) / 100
+      : 0
+
+  const displayToken =
+    campaign.acceptedToken.toLowerCase() ===
+    USDC_TOKEN_ADDRESS_SEPOLIA.toLowerCase()
+      ? 'USDC'
+      : campaign.acceptedToken.slice(0, 6) + '…'
 
   const title = isLoadingMetadata
-    ? 'Ładowanie tytułu…'
-    : metadata?.title || `Kampania #${idx}`
+    ? 'Ładowanie…'
+    : metadata?.title || `Kampania #${idx + 1}`
 
-  const description = isLoadingMetadata
-    ? 'Ładowanie opisu…'
-    : metadata?.description || metadataError || ''
+  // fullDescription fallback to CID
+  const fullDescription = isLoadingMetadata
+    ? 'Ładowanie…'
+    : metadata?.description || `CID: ${cid}`
+
+  const description = fullDescription.length > 100
+    ? fullDescription.slice(0, 100)
+    : fullDescription
 
   const statusStyles: Record<number, { text: string; border: string; bg: string }> = {
     0: { text: 'text-teal-400', border: 'border-teal-400', bg: 'bg-teal-500/10' },
@@ -127,38 +150,55 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
   const style = statusStyles[campaign.status] || statusStyles[0]
 
   return (
-    <div className="group bg-[#1E1B2E] rounded-xl shadow-lg
-                    hover:shadow-[0_0_35px_5px_rgba(0,255,255,0.3)]
-                    transition-all duration-300 ease-in-out transform
-                    hover:scale-105 flex flex-col overflow-hidden
-                    border border-transparent hover:border-teal-500/50 m-3">
+    <div
+      className="group bg-[#1E1B2E] rounded-xl shadow-lg hover:shadow-[0_0_35px_5px_rgba(0,255,255,0.3)] transition-all duration-300 ease-in-out transform hover:scale-105 flex flex-col overflow-hidden border border-transparent hover:border-teal-500/50 m-3 cursor-pointer"
+      onClick={() => router.push(`/campaigns/${idx + 1}`)}
+    >
+      {/* Baner + status */}
       <div className="relative w-full h-56 md:h-64 overflow-hidden">
         <Image
-          src="/images/BanerAltrSeed.jpg"
+          src={metadata?.image || '/images/BanerAltrSeed.jpg'}
           alt="Banner"
           fill
           className="object-cover"
           priority
+          onClick={e => e.stopPropagation()}
         />
-        <span className={`absolute top-3 right-3 px-2 py-1 text-xs font-semibold rounded-full border ${style.border} ${style.text} ${style.bg}`}>
+        <span
+          className={`absolute top-3 right-3 px-2 py-1 text-xs font-semibold rounded-full border ${style.border} ${style.text} ${style.bg}`}
+          onClick={e => e.stopPropagation()}
+        >
           {getCampaignStatusText(campaign.status)}
         </span>
       </div>
 
+      {/* Treść */}
       <div className="p-5 flex flex-col flex-grow">
-        <h3 className="text-xl font-semibold text-white mb-2 truncate">{title}</h3>
-        <div className="text-xs text-slate-400 mb-3">
+        <h3
+          className="text-xl font-semibold text-white mb-2 truncate"
+          onClick={e => e.stopPropagation()}
+        >
+          {title}
+        </h3>
+        <div className="text-xs text-slate-400 mb-3" onClick={e => e.stopPropagation()}>
           Typ:{' '}
           <span className="font-medium text-slate-300">
             {getCampaignTypeText(campaign.campaignType)}
           </span>
         </div>
 
-        <p className="text-sm text-slate-300 mb-4 overflow-y-auto leading-relaxed flex-grow">
-          {description}
-        </p>
+        {/* Opis z fade */}
+        <div className="relative mb-4" onClick={e => e.stopPropagation()}>
+          <p className="text-sm text-slate-300 leading-relaxed">
+            {description}{fullDescription.length > 100 ? '…' : ''}
+          </p>
+          {fullDescription.length > 100 && (
+            <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[#1E1B2E] to-transparent pointer-events-none" />
+          )}
+        </div>
 
-        <div className="mb-4">
+        {/* Pasek postępu */}
+        <div className="mb-4" onClick={e => e.stopPropagation()}>
           <div className="flex justify-between text-xs text-slate-300 mb-1">
             <span>
               Zebrano:{' '}
@@ -179,10 +219,13 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
               style={{ width: `${Math.min(progress, 100)}%` }}
             />
           </div>
-          <p className="text-xs text-right text-slate-400 mt-1">{progress.toFixed(2)}% zebranych</p>
+          <p className="text-xs text-right text-slate-400 mt-1">
+            {progress.toFixed(2)}% zebranych
+          </p>
         </div>
 
-        <div className="border-t border-slate-700/50 pt-3 mt-auto text-xs text-slate-400 space-y-1">
+        {/* Stopka */}
+        <div className="border-t border-slate-700/50 pt-3 mt-auto text-xs text-slate-400 space-y-1" onClick={e => e.stopPropagation()}>
           <div className="flex justify-between">
             <span>
               Kreator:{' '}
@@ -211,18 +254,24 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
           )}
         </div>
 
-        <div className="mt-5 flex flex-col space-y-3">
+        {/* Akcje: input, Donate, Refund */}
+        <div className="mt-5 flex flex-col space-y-3 px-5 pb-5">
           <input
             type="number"
             min="0"
             placeholder="Kwota USDC"
             value={donationInput}
             onChange={e => setDonationInput(e.target.value)}
+            onClick={e => e.stopPropagation()}
             className="w-full px-3 py-2 rounded border border-slate-600 bg-slate-800 text-white text-sm"
           />
 
-          <DonateButton campaignId={idx + 1} donationAmount={donationInput} />
-          <RefundButton campaignId={idx + 1} />
+          <div onClick={e => e.stopPropagation()}>
+            <DonateButton campaignId={idx + 1} donationAmount={donationInput} />
+          </div>
+          <div onClick={e => e.stopPropagation()}>
+            <RefundButton campaignId={idx + 1} />
+          </div>
         </div>
       </div>
     </div>

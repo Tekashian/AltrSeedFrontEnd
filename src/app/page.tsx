@@ -5,7 +5,7 @@ import React, { useMemo } from "react";
 import Image from "next/image";
 import Slider from "react-slick";
 import Footer from "../components/Footer";
-import  CampaignCard  from "../components/CampaignCard";
+import CampaignCard from "../components/CampaignCard";
 import { useGetAllCampaigns, type Campaign } from "../hooks/useCrowdfund";
 
 import "slick-carousel/slick/slick.css";
@@ -15,19 +15,21 @@ export default function HomePage() {
   const { campaigns = [], isLoading, error, refetchCampaigns } =
     useGetAllCampaigns();
 
-  // posortuj malejąco po creationTimestamp
+  // tylko aktywne kampanie, posortowane malejąco po creationTimestamp
   const sortedCampaigns = useMemo(
     () =>
-      [...campaigns].sort(
-        (a, b) => Number(b.creationTimestamp) - Number(a.creationTimestamp)
-      ),
+      campaigns
+        .filter((c) => c.status === 0)
+        .sort(
+          (a, b) => Number(b.creationTimestamp) - Number(a.creationTimestamp)
+        ),
     [campaigns]
   );
 
-  // wybierz max 6 z postępem > 0 i posortuj po %
+  // wybierz max 6 aktywnych z postępem > 0 i posortuj po %
   const topProgress = useMemo(() => {
     return campaigns
-      .filter((c) => c.raisedAmount > BigInt(0) && c.targetAmount > BigInt(0))
+      .filter((c) => c.status === 0 && c.raisedAmount > BigInt(0) && c.targetAmount > BigInt(0))
       .sort((a, b) => {
         const pa = Number(a.raisedAmount) / Number(a.targetAmount);
         const pb = Number(b.raisedAmount) / Number(b.targetAmount);
@@ -113,7 +115,7 @@ export default function HomePage() {
             <p className="text-red-600">Błąd: {error.message}</p>
           )}
           {!isLoading && !error && sortedCampaigns.length === 0 && (
-            <p>Brak kampanii do wyświetlenia.</p>
+            <p>Brak aktywnych kampanii do wyświetlenia.</p>
           )}
           {!isLoading && !error && sortedCampaigns.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
