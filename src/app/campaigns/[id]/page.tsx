@@ -35,6 +35,8 @@ interface CampaignMetadata {
 const USDC_TOKEN_ADDRESS_SEPOLIA =
   '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
 const IPFS_GATEWAY_PREFIX = 'https://ipfs.io/ipfs/'
+// placeholder dla testowych CID lub braku obrazu
+const PLACEHOLDER_IMAGE = '/images/BanerAltrSeed.jpg'
 
 // Formatuje wartość USDC (6 miejsc dziesiętnych) do 2 miejsc po przecinku
 const formatUSDC = (amount: bigint): string => {
@@ -60,6 +62,7 @@ export default function CampaignDetailPage() {
   const [isLoadingMetadata, setIsLoadingMetadata] = useState(true)
   const [donationInput, setDonationInput] = useState('')
 
+  // Pobierz metadane JSON z IPFS
   useEffect(() => {
     if (!data) return
 
@@ -76,22 +79,19 @@ export default function CampaignDetailPage() {
         return res.json()
       })
       .then((meta: any) => {
-        const loaded: CampaignMetadata = {
+        setMetadata({
           title: meta.title,
           description: meta.description,
           image: meta.image,
           location: meta.location,
           disease: meta.disease,
-          cause: meta.cause
-        }
-        setMetadata(loaded)
+          cause: meta.cause,
+        })
       })
       .catch(() => {
-        // Jeśli metadata nie załaduje się z IPFS, pomijamy
+        // Jeśli fetch się nie uda, zostawiamy null
       })
-      .finally(() => {
-        setIsLoadingMetadata(false)
-      })
+      .finally(() => setIsLoadingMetadata(false))
   }, [data])
 
   if (isLoading || isLoadingMetadata) {
@@ -109,9 +109,23 @@ export default function CampaignDetailPage() {
   const campaign = data as CampaignDetails
 
   const title = metadata?.title || `Kampania #${idNum}`
-  const imageUrl = metadata?.image
-    ? `${IPFS_GATEWAY_PREFIX}${metadata.image}`
-    : '/images/BanerAltrSeed.jpg'
+
+  // --- logika IPFS image (jak w CampaignCard.tsx) ---
+  const cid = campaign.dataCID.trim()
+  const isTestCid = cid.startsWith('Test')
+  let imageUrl: string
+  if (!metadata?.image || isTestCid) {
+    imageUrl = PLACEHOLDER_IMAGE
+  } else if (metadata.image.startsWith('ipfs://')) {
+    const raw = metadata.image.replace('ipfs://', '')
+    imageUrl = `${IPFS_GATEWAY_PREFIX}${raw}`
+  } else if (metadata.image.startsWith('http')) {
+    imageUrl = metadata.image
+  } else {
+    imageUrl = `${IPFS_GATEWAY_PREFIX}${metadata.image}`
+  }
+  // -------------------------------------------------------
+
   const description = metadata?.description || ''
   const location = metadata?.location
   const disease = metadata?.disease
@@ -123,7 +137,7 @@ export default function CampaignDetailPage() {
       ? Number((campaign.raisedAmount * 10000n) / campaign.targetAmount) / 100
       : 0
 
-  // Jeżeli token to USDC, pokaż "USDC"
+  // token display
   const displayToken =
     campaign.acceptedToken.toLowerCase() ===
     USDC_TOKEN_ADDRESS_SEPOLIA.toLowerCase()
@@ -145,21 +159,17 @@ export default function CampaignDetailPage() {
               priority
             />
           </div>
-          <p className="mt-4 text-gray-700">
-            {description}
-          </p>
+          <p className="mt-4 text-gray-700">{description}</p>
         </div>
 
         {/* Prawa kolumna: szczegóły i Donate */}
         <div className="flex flex-col">
-          <h1 className="text-4xl font-bold text-[#1F4E79] mb-4">
-            {title}
-          </h1>
+          <h1 className="text-4xl font-bold text-[#1F4E79] mb-4">{title}</h1>
 
           {/* Pasek postępu */}
           <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
             <div
-              className="h-4 rounded-full bg-[#00ADEF]"
+              className="h-4 rounded-full bg-[#00ADEF] transition-all"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -169,8 +179,7 @@ export default function CampaignDetailPage() {
             {formatUSDC(campaign.raisedAmount)} {displayToken}
             {' / '}
             {formatUSDC(campaign.targetAmount)} {displayToken}
-            {' '}
-            ({progressPercent.toFixed(2)}%)
+            {' '}({progressPercent.toFixed(2)}%)
           </p>
 
           {/* Pole na wpisanie kwoty */}
