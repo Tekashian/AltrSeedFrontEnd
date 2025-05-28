@@ -15,7 +15,7 @@ interface CampaignCardProps {
 
 const USDC_TOKEN_ADDRESS_SEPOLIA = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
 const IPFS_GATEWAY_PREFIX = 'https://ipfs.io/ipfs/'
-// ścieżka do obrazka zastępczego dla testowych kampanii
+// placeholder dla testowych kampanii lub braku obrazu
 const PLACEHOLDER_IMAGE = '/images/BanerAltrSeed.jpg'
 
 interface CampaignMetadata {
@@ -66,11 +66,11 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
   const [metadataError, setMetadataError] = useState<string | null>(null)
   const [donationInput, setDonationInput] = useState('')
 
-  // Stałe dla deps
+  // Stałe
   const cid = campaign.dataCID.trim() || ''
   const idx = campaign.campaignId ?? 0
 
-  // Fetch metadata z IPFS
+  // Pobierz metadane z IPFS
   useEffect(() => {
     setIsLoadingMetadata(true)
     setMetadata(null)
@@ -92,7 +92,7 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
           setMetadata({
             title: data.title,
             description: data.description,
-            image: data.image // expected to be full URL or ipfs://
+            image: data.image
           })
         } else {
           setMetadataError(null)
@@ -106,15 +106,16 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
       })
   }, [cid, idx])
 
-  // Polling: odśwież co 5s
+  // Polling co 5s
   useEffect(() => {
     const interval = setInterval(() => router.refresh(), 5000)
     return () => clearInterval(interval)
   }, [router])
 
-  const progress = campaign.targetAmount > 0n
-    ? Number((campaign.raisedAmount * 10000n) / campaign.targetAmount) / 100
-    : 0
+  const progress =
+    campaign.targetAmount > 0n
+      ? Number((campaign.raisedAmount * 10000n) / campaign.targetAmount) / 100
+      : 0
 
   const displayToken =
     campaign.acceptedToken.toLowerCase() === USDC_TOKEN_ADDRESS_SEPOLIA.toLowerCase()
@@ -142,14 +143,20 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
   }
   const style = statusStyles[campaign.status] || statusStyles[0]
 
-  // logika rozróżniania testowych vs prawidłowych CID
+  // Czy to testowy CID?
   const isTestCid = cid.startsWith('Test')
-  const hasValidUrl = metadata?.image && (metadata.image.startsWith('http') && !isTestCid)
-
-  // wybór źródła obrazka
-  const imageSrc = hasValidUrl
-    ? metadata!.image!
-    : PLACEHOLDER_IMAGE
+  // Przygotuj końcowy URL do obrazka
+  let finalImageUrl: string
+  if (!metadata?.image || isTestCid) {
+    finalImageUrl = PLACEHOLDER_IMAGE
+  } else if (metadata.image.startsWith('ipfs://')) {
+    const raw = metadata.image.replace('ipfs://', '')
+    finalImageUrl = `${IPFS_GATEWAY_PREFIX}${raw}`
+  } else if (metadata.image.startsWith('http')) {
+    finalImageUrl = metadata.image
+  } else {
+    finalImageUrl = `${IPFS_GATEWAY_PREFIX}${metadata.image}`
+  }
 
   return (
     <div
@@ -158,20 +165,20 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
     >
       {/* Baner + status */}
       <div className="relative w-full h-56 md:h-64 overflow-hidden">
-        {hasValidUrl ? (
+        {finalImageUrl === PLACEHOLDER_IMAGE ? (
+          <img
+            src={finalImageUrl}
+            alt="Banner placeholder"
+            className="w-full h-full object-cover"
+            onClick={e => e.stopPropagation()}
+          />
+        ) : (
           <Image
-            src={imageSrc}
+            src={finalImageUrl}
             alt="Banner"
             fill
             className="object-cover"
             priority
-            onClick={e => e.stopPropagation()}
-          />
-        ) : (
-          <img
-            src={imageSrc}
-            alt="Banner placeholder"
-            className="w-full h-full object-cover"
             onClick={e => e.stopPropagation()}
           />
         )}
