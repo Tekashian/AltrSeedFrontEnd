@@ -14,32 +14,42 @@ import "slick-carousel/slick/slick-theme.css";
 
 export default function HomePage() {
   const router = useRouter();
-  const { campaigns = [], isLoading, error, refetchCampaigns } =
-    useGetAllCampaigns();
+  const {
+    campaigns = [],
+    isLoading,
+    error,
+    refetchCampaigns,
+  } = useGetAllCampaigns();
 
-  // tylko aktywne kampanie, posortowane malejąco po creationTimestamp
+  // 1) Tylko aktywne kampanie, posortowane malejąco według czasu utworzenia
   const sortedCampaigns = useMemo(
     () =>
       campaigns
         .filter((c) => c.status === 0)
         .sort(
-          (a, b) => Number(b.creationTimestamp) - Number(a.creationTimestamp)
+          (a, b) =>
+            Number(b.creationTimestamp) -
+            Number(a.creationTimestamp)
         ),
     [campaigns]
   );
 
-  // wybierz max 6 aktywnych z postępem > 0 i posortuj po %
+  // 2) Top 6 kampanii, które mają >0% postępu, posortowane po procencie zebranej kwoty
   const topProgress = useMemo(() => {
     return campaigns
       .filter(
         (c) =>
           c.status === 0 &&
-          c.raisedAmount > BigInt(0) &&
-          c.targetAmount > BigInt(0)
+          c.raisedAmount > 0n &&
+          c.targetAmount > 0n
       )
       .sort((a, b) => {
-        const pa = Number(a.raisedAmount) / Number(a.targetAmount);
-        const pb = Number(b.raisedAmount) / Number(b.targetAmount);
+        const pa =
+          Number(a.raisedAmount) /
+          Number(a.targetAmount);
+        const pb =
+          Number(b.raisedAmount) /
+          Number(b.targetAmount);
         return pb - pa;
       })
       .slice(0, 6);
@@ -50,7 +60,7 @@ export default function HomePage() {
   const handleDonateClick = (id: number) =>
     console.log("Donate to campaign:", id);
 
-  // konfiguracja slidera
+  // Ustawienia slidera
   const sliderSettings = {
     dots: true,
     infinite: true,
@@ -84,7 +94,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Sticky button: przekierowuje do create-campaign */}
+      {/* Sticky button do tworzenia kampanii */}
       <div
         className="
           sticky top-[70px] z-50 pointer-events-auto flex justify-center bg-transparent
@@ -92,7 +102,9 @@ export default function HomePage() {
         "
       >
         <button
-          onClick={() => router.push("/create-campaign")}
+          onClick={() =>
+            router.push("/create-campaign")
+          }
           className="
             bg-[#68CC89] text-white
             transform transition duration-200 ease-in-out
@@ -106,19 +118,28 @@ export default function HomePage() {
         </button>
       </div>
 
-      {/* Zawartość w kontenerze - dodałem dodatkowy padding-top, aby nie zasłaniać sekcji */}
+      {/* Główna zawartość */}
       <main className="container mx-auto px-4 pt-24 pb-8">
-        {/* Slider: Najbliżej celu */}
+        {/* Sekcja: najbliżej celu */}
         {topProgress.length > 0 && (
           <section className="mb-12">
-            <h2 className="text-2xl font-bold mb-4">Najbliżej celu</h2>
+            <h2 className="text-2xl font-bold mb-4">
+              Najbliżej celu
+            </h2>
             <Slider {...sliderSettings}>
               {topProgress.map((c) => (
-                <div key={c.campaignId} className="px-2">
+                <div
+                  key={c.campaignId}
+                  className="px-2"
+                >
                   <CampaignCard
                     campaign={c}
-                    onDetailsClick={handleDetailsClick}
-                    onDonateClick={handleDonateClick}
+                    onDetailsClick={
+                      handleDetailsClick
+                    }
+                    onDonateClick={
+                      handleDonateClick
+                    }
                   />
                 </div>
               ))}
@@ -126,35 +147,57 @@ export default function HomePage() {
           </section>
         )}
 
-        {/* Wszystkie kampanie */}
+        {/* Sekcja: wszystkie kampanie */}
         <section>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold">Wszystkie kampanie</h2>
+            <h2 className="text-2xl font-bold">
+              Wszystkie kampanie
+            </h2>
             <button
               className="px-4 py-2 rounded bg-[#68CC89] text-white hover:bg-[#5fbf7a] transition"
-              onClick={() => refetchCampaigns()}
+              onClick={() =>
+                refetchCampaigns()
+              }
             >
               Odśwież
             </button>
           </div>
 
-          {isLoading && <p>Ładowanie kampanii…</p>}
-          {error && <p className="text-red-600">Błąd: {error.message}</p>}
-          {!isLoading && !error && sortedCampaigns.length === 0 && (
-            <p>Brak aktywnych kampanii do wyświetlenia.</p>
+          {isLoading && (
+            <p>Ładowanie kampanii…</p>
           )}
-          {!isLoading && !error && sortedCampaigns.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {sortedCampaigns.map((campaign) => (
-                <CampaignCard
-                  key={campaign.campaignId}
-                  campaign={campaign}
-                  onDetailsClick={handleDetailsClick}
-                  onDonateClick={handleDonateClick}
-                />
-              ))}
-            </div>
+          {error && (
+            <p className="text-red-600">
+              Błąd: {error.message}
+            </p>
           )}
+          {!isLoading &&
+            !error &&
+            sortedCampaigns.length === 0 && (
+              <p>
+                Brak aktywnych kampanii do wyświetlenia.
+              </p>
+            )}
+          {!isLoading &&
+            !error &&
+            sortedCampaigns.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {sortedCampaigns.map(
+                  (campaign) => (
+                    <CampaignCard
+                      key={campaign.campaignId}
+                      campaign={campaign}
+                      onDetailsClick={
+                        handleDetailsClick
+                      }
+                      onDonateClick={
+                        handleDonateClick
+                      }
+                    />
+                  )
+                )}
+              </div>
+            )}
         </section>
       </main>
 

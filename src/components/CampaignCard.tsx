@@ -13,9 +13,10 @@ interface CampaignCardProps {
   campaign: Campaign
 }
 
-const USDC_TOKEN_ADDRESS_SEPOLIA =
-  '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
+const USDC_TOKEN_ADDRESS_SEPOLIA = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
 const IPFS_GATEWAY_PREFIX = 'https://ipfs.io/ipfs/'
+// ścieżka do obrazka zastępczego dla testowych kampanii
+const PLACEHOLDER_IMAGE = '/images/BanerAltrSeed.jpg'
 
 interface CampaignMetadata {
   title: string
@@ -69,7 +70,7 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
   const cid = campaign.dataCID.trim() || ''
   const idx = campaign.campaignId ?? 0
 
-  // Fetch metadata from IPFS
+  // Fetch metadata z IPFS
   useEffect(() => {
     setIsLoadingMetadata(true)
     setMetadata(null)
@@ -87,14 +88,11 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
         return res.json()
       })
       .then((data: any) => {
-        if (
-          typeof data.title === 'string' &&
-          typeof data.description === 'string'
-        ) {
+        if (typeof data.title === 'string' && typeof data.description === 'string') {
           setMetadata({
             title: data.title,
             description: data.description,
-            image: data.image
+            image: data.image // expected to be full URL or ipfs://
           })
         } else {
           setMetadataError(null)
@@ -108,22 +106,18 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
       })
   }, [cid, idx])
 
-  // Polling: refresh cards every 5 seconds
+  // Polling: odśwież co 5s
   useEffect(() => {
-    const interval = setInterval(() => {
-      router.refresh()
-    }, 5000)
+    const interval = setInterval(() => router.refresh(), 5000)
     return () => clearInterval(interval)
   }, [router])
 
-  const progress =
-    campaign.targetAmount > 0n
-      ? Number((campaign.raisedAmount * 10000n) / campaign.targetAmount) / 100
-      : 0
+  const progress = campaign.targetAmount > 0n
+    ? Number((campaign.raisedAmount * 10000n) / campaign.targetAmount) / 100
+    : 0
 
   const displayToken =
-    campaign.acceptedToken.toLowerCase() ===
-    USDC_TOKEN_ADDRESS_SEPOLIA.toLowerCase()
+    campaign.acceptedToken.toLowerCase() === USDC_TOKEN_ADDRESS_SEPOLIA.toLowerCase()
       ? 'USDC'
       : campaign.acceptedToken.slice(0, 6) + '…'
 
@@ -131,7 +125,6 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
     ? 'Ładowanie…'
     : metadata?.title || `Kampania #${idx + 1}`
 
-  // fullDescription fallback to CID
   const fullDescription = isLoadingMetadata
     ? 'Ładowanie…'
     : metadata?.description || `CID: ${cid}`
@@ -149,6 +142,15 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
   }
   const style = statusStyles[campaign.status] || statusStyles[0]
 
+  // logika rozróżniania testowych vs prawidłowych CID
+  const isTestCid = cid.startsWith('Test')
+  const hasValidUrl = metadata?.image && (metadata.image.startsWith('http') && !isTestCid)
+
+  // wybór źródła obrazka
+  const imageSrc = hasValidUrl
+    ? metadata!.image!
+    : PLACEHOLDER_IMAGE
+
   return (
     <div
       className="group bg-[#1E1B2E] rounded-xl shadow-lg hover:shadow-[0_0_35px_5px_rgba(0,255,255,0.3)] transition-all duration-300 ease-in-out transform hover:scale-105 flex flex-col overflow-hidden border border-transparent hover:border-teal-500/50 m-3 cursor-pointer"
@@ -156,14 +158,23 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
     >
       {/* Baner + status */}
       <div className="relative w-full h-56 md:h-64 overflow-hidden">
-        <Image
-          src={metadata?.image || '/images/BanerAltrSeed.jpg'}
-          alt="Banner"
-          fill
-          className="object-cover"
-          priority
-          onClick={e => e.stopPropagation()}
-        />
+        {hasValidUrl ? (
+          <Image
+            src={imageSrc}
+            alt="Banner"
+            fill
+            className="object-cover"
+            priority
+            onClick={e => e.stopPropagation()}
+          />
+        ) : (
+          <img
+            src={imageSrc}
+            alt="Banner placeholder"
+            className="w-full h-full object-cover"
+            onClick={e => e.stopPropagation()}
+          />
+        )}
         <span
           className={`absolute top-3 right-3 px-2 py-1 text-xs font-semibold rounded-full border ${style.border} ${style.text} ${style.bg}`}
           onClick={e => e.stopPropagation()}
@@ -174,10 +185,7 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
 
       {/* Treść */}
       <div className="p-5 flex flex-col flex-grow">
-        <h3
-          className="text-xl font-semibold text-white mb-2 truncate"
-          onClick={e => e.stopPropagation()}
-        >
+        <h3 className="text-xl font-semibold text-white mb-2 truncate" onClick={e => e.stopPropagation()}>
           {title}
         </h3>
         <div className="text-xs text-slate-400 mb-3" onClick={e => e.stopPropagation()}>
@@ -186,8 +194,7 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
             {getCampaignTypeText(campaign.campaignType)}
           </span>
         </div>
-
-        {/* Opis z fade */}
+        {/* Opis */}
         <div className="relative mb-4" onClick={e => e.stopPropagation()}>
           <p className="text-sm text-slate-300 leading-relaxed">
             {description}{fullDescription.length > 100 ? '…' : ''}
@@ -196,82 +203,29 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
             <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[#1E1B2E] to-transparent pointer-events-none" />
           )}
         </div>
-
         {/* Pasek postępu */}
         <div className="mb-4" onClick={e => e.stopPropagation()}>
           <div className="flex justify-between text-xs text-slate-300 mb-1">
-            <span>
-              Zebrano:{' '}
-              <span className="font-semibold text-teal-400">
-                {formatAmount(campaign.raisedAmount)} {displayToken}
-              </span>
-            </span>
-            <span>
-              Cel:{' '}
-              <span className="font-semibold text-white">
-                {formatAmount(campaign.targetAmount)} {displayToken}
-              </span>
-            </span>
+            <span>Zebrano: <span className="font-semibold text-teal-400">{formatAmount(campaign.raisedAmount)} {displayToken}</span></span>
+            <span>Cel: <span className="font-semibold text-white">{formatAmount(campaign.targetAmount)} {displayToken}</span></span>
           </div>
-          <div className="w-full bg-slate-700 rounded-full h-2">
-            <div
-              className="h-2 rounded-full transition-all duration-500 ease-out bg-teal-500"
-              style={{ width: `${Math.min(progress, 100)}%` }}
-            />
-          </div>
-          <p className="text-xs text-right text-slate-400 mt-1">
-            {progress.toFixed(2)}% zebranych
-          </p>
+          <div className="w-full bg-slate-700 rounded-full h-2"><div className="h-2 rounded-full transition-all duration-500 ease-out bg-teal-500" style={{width: `${Math.min(progress,100)}%`}}/></div>
+          <p className="text-xs text-right text-slate-400 mt-1">{progress.toFixed(2)}% zebranych</p>
         </div>
-
         {/* Stopka */}
         <div className="border-t border-slate-700/50 pt-3 mt-auto text-xs text-slate-400 space-y-1" onClick={e => e.stopPropagation()}>
           <div className="flex justify-between">
-            <span>
-              Kreator:{' '}
-              <code className="text-slate-300">
-                {campaign.creator.slice(0, 6)}…{campaign.creator.slice(-4)}
-              </code>
-            </span>
-            <span>
-              Token:{' '}
-              <span className="font-semibold text-slate-300">{displayToken}</span>
-            </span>
+            <span>Kreator: <code className="text-slate-300">{campaign.creator.slice(0,6)}…{campaign.creator.slice(-4)}</code></span>
+            <span>Token: <span className="font-semibold text-slate-300">{displayToken}</span></span>
           </div>
-          <div>
-            Zakończenie:{' '}
-            <span className="text-slate-300">
-              {new Date(Number(campaign.endTime) * 1000).toLocaleDateString('pl-PL')}
-            </span>
-          </div>
-          {campaign.reclaimDeadline > 0n && (
-            <div className="text-amber-400">
-              Zwrot do:{' '}
-              <span className="text-amber-300">
-                {new Date(Number(campaign.reclaimDeadline) * 1000).toLocaleDateString('pl-PL')}
-              </span>
-            </div>
-          )}
+          <div>Zakończenie: <span className="text-slate-300">{new Date(Number(campaign.endTime) * 1000).toLocaleDateString('pl-PL')}</span></div>
+          {campaign.reclaimDeadline > 0n && (<div className="text-amber-400">Zwrot do: <span className="text-amber-300">{new Date(Number(campaign.reclaimDeadline) * 1000).toLocaleDateString('pl-PL')}</span></div>)}
         </div>
-
-        {/* Akcje: input, Donate, Refund */}
+        {/* Akcje */}
         <div className="mt-5 flex flex-col space-y-3 px-5 pb-5">
-          <input
-            type="number"
-            min="0"
-            placeholder="Kwota USDC"
-            value={donationInput}
-            onChange={e => setDonationInput(e.target.value)}
-            onClick={e => e.stopPropagation()}
-            className="w-full px-3 py-2 rounded border border-slate-600 bg-slate-800 text-white text-sm"
-          />
-
-          <div onClick={e => e.stopPropagation()}>
-            <DonateButton campaignId={idx + 1} donationAmount={donationInput} />
-          </div>
-          <div onClick={e => e.stopPropagation()}>
-            <RefundButton campaignId={idx + 1} />
-          </div>
+          <input type="number" min="0" placeholder="Kwota USDC" value={donationInput} onChange={e => setDonationInput(e.target.value)} onClick={e => e.stopPropagation()} className="w-full px-3 py-2 rounded border border-slate-600 bg-slate-800 text-white text-sm"/>
+          <div onClick={e => e.stopPropagation()}><DonateButton campaignId={idx+1} donationAmount={donationInput}/></div>
+          <div onClick={e => e.stopPropagation()}><RefundButton campaignId={idx+1}/></div>
         </div>
       </div>
     </div>
