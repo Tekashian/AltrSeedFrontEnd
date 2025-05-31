@@ -1,4 +1,4 @@
-// src/components/CampaignCard.tsx
+// src/components/MyCampaignCard.tsx
 'use client'
 
 import React, { useState, useEffect } from 'react'
@@ -6,15 +6,11 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useAccount } from 'wagmi'
 import { type Campaign } from '../hooks/useCrowdfund'
+import CloseCampaignButton from './CloseCampaignButton'
 
-interface CampaignCardProps {
+interface MyCampaignCardProps {
   campaign: Campaign
 }
-
-const USDC_TOKEN_ADDRESS_SEPOLIA = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
-const IPFS_GATEWAY_PREFIX = 'https://ipfs.io/ipfs/'
-// placeholder dla testowych kampanii lub braku obrazu
-const PLACEHOLDER_IMAGE = '/images/BanerAltrSeed.jpg'
 
 interface CampaignMetadata {
   title: string
@@ -22,14 +18,25 @@ interface CampaignMetadata {
   image?: string
 }
 
+const USDC_TOKEN_ADDRESS_SEPOLIA =
+  '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
+const IPFS_GATEWAY_PREFIX = 'https://ipfs.io/ipfs/'
+const PLACEHOLDER_IMAGE = '/images/BanerAltrSeed.jpg'
+
 const getCampaignStatusText = (status: number): string => {
   switch (status) {
-    case 0: return 'Aktywna'
-    case 1: return 'Zakończona'
-    case 2: return 'Nieudana'
-    case 3: return 'Zamykanie'
-    case 4: return 'Zamknięta'
-    default: return `Status (${status})`
+    case 0:
+      return 'Aktywna'
+    case 1:
+      return 'Zakończona'
+    case 2:
+      return 'Nieudana'
+    case 3:
+      return 'Zamykanie'
+    case 4:
+      return 'Zamknięta'
+    default:
+      return `Status (${status})`
   }
 }
 
@@ -48,14 +55,13 @@ const formatAmount = (
   return `${integerPart}.${frac}`
 }
 
-const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
+const MyCampaignCard: React.FC<MyCampaignCardProps> = ({ campaign }) => {
   const router = useRouter()
   const { address } = useAccount()
   const [metadata, setMetadata] = useState<CampaignMetadata | null>(null)
   const [isLoadingMetadata, setIsLoadingMetadata] = useState(true)
   const [menuOpen, setMenuOpen] = useState(false)
 
-  // Stałe
   const cid = campaign.dataCID.trim() || ''
   const idx = campaign.campaignId ?? 0
 
@@ -68,33 +74,42 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
       return
     }
     fetch(`${IPFS_GATEWAY_PREFIX}${cid}`)
-      .then(res => {
+      .then((res) => {
         if (!res.ok) throw new Error(`IPFS error ${res.status}`)
         return res.json()
       })
       .then((data: any) => {
-        if (typeof data.title === 'string' && typeof data.description === 'string') {
+        if (
+          typeof data.title === 'string' &&
+          typeof data.description === 'string'
+        ) {
           setMetadata({
             title: data.title,
             description: data.description,
-            image: data.image
+            image: data.image,
           })
         }
       })
-      .catch(() => {})
+      .catch(() => {
+        /* ignoruj błędy */
+      })
       .finally(() => setIsLoadingMetadata(false))
   }, [cid])
 
+  // Oblicz postęp procentowy
   const progress =
     campaign.targetAmount > 0n
       ? Number((campaign.raisedAmount * 10000n) / campaign.targetAmount) / 100
       : 0
 
+  // Wskaż, czy token to USDC, aby wyświetlić skrót
   const displayToken =
-    campaign.acceptedToken.toLowerCase() === USDC_TOKEN_ADDRESS_SEPOLIA.toLowerCase()
+    campaign.acceptedToken.toLowerCase() ===
+    USDC_TOKEN_ADDRESS_SEPOLIA.toLowerCase()
       ? 'USDC'
       : campaign.acceptedToken.slice(0, 6) + '…'
 
+  // Przygotuj tytuł i opis
   const title = isLoadingMetadata
     ? 'Ładowanie…'
     : metadata?.title || `Kampania #${idx + 1}`
@@ -103,61 +118,99 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
     ? 'Ładowanie…'
     : metadata?.description || `CID: ${cid}`
 
-  const description = fullDescription.length > 100
-    ? fullDescription.slice(0, 100)
-    : fullDescription
+  const description =
+    fullDescription.length > 100
+      ? fullDescription.slice(0, 100) + '…'
+      : fullDescription
 
   const statusText = getCampaignStatusText(campaign.status)
 
-  // Czy to testowy CID?
-  const isTestCid = cid.startsWith('Test')
-  // Przygotuj końcowy URL do obrazka
+  // Rozwiąż URL do banera
   let finalImageUrl: string
+  const isTestCid = cid.startsWith('Test')
   if (!metadata?.image || isTestCid) {
     finalImageUrl = PLACEHOLDER_IMAGE
   } else if (metadata.image.startsWith('ipfs://')) {
-    finalImageUrl = `${IPFS_GATEWAY_PREFIX}${metadata.image.replace('ipfs://', '')}`
+    finalImageUrl = `${IPFS_GATEWAY_PREFIX}${metadata.image.replace(
+      'ipfs://',
+      ''
+    )}`
   } else if (metadata.image.startsWith('http')) {
     finalImageUrl = metadata.image
   } else {
     finalImageUrl = `${IPFS_GATEWAY_PREFIX}${metadata.image}`
   }
 
+  // Sprawdź, czy przycisk "Zamknij kampanię" powinien być widoczny
+  const [showCloseButton, setShowCloseButton] = useState(false)
+
+  useEffect(() => {
+    const nowSec = Math.floor(Date.now() / 1000)
+    const endTimeNumber =
+      typeof campaign.endTime === 'bigint'
+        ? Number(campaign.endTime)
+        : campaign.endTime ?? 0
+
+    const hasReachedGoal = campaign.raisedAmount >= campaign.targetAmount
+    const hasEnded = nowSec >= endTimeNumber
+    const isActive = campaign.status === 0 // 0 = Active
+    const isCreator =
+      address?.toLowerCase() === campaign.creator.toLowerCase()
+
+    // Jeśli kampania osiągnęła cel, czas zakończenia minął, status to Active
+    // oraz jeśli zalogowany użytkownik jest twórcą, pokaż przycisk zamknięcia
+    if (hasReachedGoal && hasEnded && isActive && isCreator) {
+      setShowCloseButton(true)
+    } else {
+      setShowCloseButton(false)
+    }
+  }, [campaign, address])
+
   return (
     <div
-      className="group bg-white rounded-xl shadow-lg hover:shadow-[0_0_35px_5px_rgba(0,255,255,0.3)] transition-all duration-300 ease-in-out transform hover:scale-105 overflow-visible cursor-pointer relative"
+      className="group bg-white rounded-xl shadow-lg hover:shadow-[0_0_35px_5px_rgba(0,255,255,0.3)]
+                 transition-all duration-300 ease-in-out transform hover:scale-105
+                 overflow-visible cursor-pointer relative"
       onClick={() => router.push(`/campaigns/${idx + 1}`)}
     >
-      {/* Małe menu w prawym górnym rogu */}
+      {/* opcjonalne menu rozwijane */}
       <div className="absolute top-2 right-2">
         <button
           className="p-1 rounded-full hover:bg-gray-200"
-          onClick={e => { e.stopPropagation(); setMenuOpen(!menuOpen) }}
+          onClick={(e) => {
+            e.stopPropagation()
+            setMenuOpen(!menuOpen)
+          }}
         >
-          <span className="block w-1 h-1 bg-gray-800 rounded-full mb-0.5"></span>
-          <span className="block w-1 h-1 bg-gray-800 rounded-full mb-0.5"></span>
-          <span className="block w-1 h-1 bg-gray-800 rounded-full"></span>
+          <span className="block w-1 h-1 bg-gray-800 rounded-full mb-0.5" />
+          <span className="block w-1 h-1 bg-gray-800 rounded-full mb-0.5" />
+          <span className="block w-1 h-1 bg-gray-800 rounded-full" />
         </button>
         {menuOpen && (
           <div className="mt-1 bg-white border border-gray-300 rounded shadow-md text-sm text-gray-800">
             <button
               className="block w-full text-left px-3 py-1 hover:bg-gray-100"
-              onClick={e => { e.stopPropagation(); alert('Zgłoś kampanię') }}
+              onClick={(e) => {
+                e.stopPropagation()
+                alert('Zgłoś kampanię')
+              }}
             >
               Zgłoś kampanię
             </button>
             <button
               className="block w-full text-left px-3 py-1 hover:bg-gray-100"
-              onClick={e => { e.stopPropagation(); alert('Inna opcja') }}
+              onClick={(e) => {
+                e.stopPropagation()
+                alert('Inna opcja')
+              }}
             >
               Inna opcja
             </button>
           </div>
         )}
-
       </div>
 
-      {/* Baner + status */}
+      {/* banner */}
       <div className="relative w-full h-56 md:h-64 overflow-hidden">
         <Image
           src={finalImageUrl}
@@ -165,28 +218,56 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
           fill
           className="object-cover"
           priority
-          onClick={e => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
         />
-        <span className="absolute top-2 left-2 bg-white bg-opacity-70 text-xs font-semibold text-gray-800 px-2 py-1 rounded">
+        <span
+          className="absolute top-2 left-2 bg-white bg-opacity-70
+                         text-xs font-semibold text-gray-800 px-2 py-1 rounded"
+        >
           {statusText}
         </span>
       </div>
 
-      {/* Treść */}
+      {/* content */}
       <div className="p-4">
-        <h3 className="text-lg font-bold text-gray-900 mb-2 truncate">{title}</h3>
-        <p className="text-sm text-gray-700 mb-4">{description}{metadata?.description && metadata.description.length > 100 ? '…' : ''}</p>
+        <h3 className="text-lg font-bold text-gray-900 mb-2 truncate">
+          {title}
+        </h3>
+        <p className="text-sm text-gray-700 mb-4">{description}</p>
         <div className="flex items-center justify-between text-sm text-gray-800 mb-2">
-          <span className="font-semibold">Zebrano:</span> <span>{formatAmount(campaign.raisedAmount)} {displayToken}</span>
-          <span className="font-semibold">Cel:</span> <span>{formatAmount(campaign.targetAmount)} {displayToken}</span>
+          <span className="font-semibold">Zebrano:</span>{' '}
+          <span>
+            {formatAmount(campaign.raisedAmount)} {displayToken}
+          </span>
+          <span className="font-semibold">Cel:</span>{' '}
+          <span>
+            {formatAmount(campaign.targetAmount)} {displayToken}
+          </span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-          <div className="h-2 rounded-full bg-green-500 transition-all" style={{ width: `${Math.min(progress, 100)}%` }} />
+          <div
+            className="h-2 rounded-full bg-green-500 transition-all"
+            style={{ width: `${Math.min(progress, 100)}%` }}
+          />
         </div>
-        <p className="text-xs text-gray-600">{progress.toFixed(2)}% zebranych</p>
+        <p className="text-xs text-gray-600">
+          {progress.toFixed(2)}% zebranych
+        </p>
+      </div>
+
+      {/* przycisk "Zamknij kampanię" zawsze widoczny */}
+      <div className="p-4 flex justify-center border-t border-gray-100">
+        <div onClick={(e) => e.stopPropagation()}>
+          <CloseCampaignButton
+            campaignId={idx + 1}
+            className="px-6 py-3 bg-[#FF5555] text-white text-lg font-semibold rounded-lg hover:bg-[#E04E4E] transition"
+          >
+            Rozpocznij zamknięcie
+          </CloseCampaignButton>
+        </div>
       </div>
     </div>
   )
 }
 
-export default CampaignCard
+export default MyCampaignCard

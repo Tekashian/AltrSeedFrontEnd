@@ -1,6 +1,6 @@
-/* app/components/Header.module.css */
+/* src/components/Header.module.css */
 .header {
-  background-color: #00ADEF;
+  background-color: #1E1B2E;
   /* padding zmniejszone o ~30%: z 0.75rem → 0.525rem, z 1.25rem → 0.875rem */
   padding: 0.00001rem 0.975rem;
   color: white;
@@ -10,7 +10,7 @@
 }
 
 .headerPlaceholder {
-  background-color: #00ADEF;
+  background-color: #1E1B2E;
   padding: 0.525rem 0.875rem;
   color: white;
   display: flex;
@@ -81,7 +81,7 @@
 
 .navLink:hover {
   transform: scale(1.05);
-  box-shadow: 0 0 12px rgba(238, 240, 239, 0.5);
+  box-shadow: 0 0 12px rgba(100, 220, 150, 0.5);
 }
 
 .iconThemeToggle {
@@ -110,7 +110,7 @@
 .iconThemeToggle:hover {
   background-color: rgba(255, 255, 255, 0.15);
   transform: scale(1.15);
-  box-shadow: 0 0 12px rgba(238, 240, 239, 0.4);
+  box-shadow: 0 0 12px rgba(100, 220, 150, 0.4);
 }
 
 .desktopThemeToggle { }
@@ -125,7 +125,7 @@
 
 .searchBarShadow {
   transform: scale(1.03);
-  box-shadow: 0 0 15px rgba(99, 211, 145, 0.6);
+  box-shadow: 0 0 15px rgba(100, 220, 150, 0.6);
 }
 
 .searchInput {
@@ -135,7 +135,7 @@
   border-bottom-left-radius: 6px;
   border-right: none;
   font-size: 0.8rem;
-  background-color: rgba(0, 0, 0, 0.12);
+  background-color: rgba(255, 255, 255, 0.1);
   color: white;
   transition:
     background-color 0.2s ease-in-out,
@@ -154,7 +154,7 @@
 .searchInput:focus {
   outline: none;
   border-color: rgba(255, 255, 255, 0.65);
-  background-color: rgba(0, 0, 0, 0.22);
+  background-color: rgba(255, 255, 255, 0.15);
   z-index: 2;
   position: relative;
 }
@@ -199,7 +199,7 @@
 
 .connectWalletButtonWrapper:hover {
   transform: scale(1.03);
-  box-shadow: 0 0 12px rgba(99, 211, 145, 0.5);
+  box-shadow: 0 0 12px rgba(100, 220, 150, 0.5);
 }
 
 /* --- MOBILE --- */
@@ -249,7 +249,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #1F4E79;
+  background-color: #1E1B2E;
   backdrop-filter: blur(3px);
   padding: 1rem;
   box-shadow: 0 8px 24px rgba(0,0,0,0.3);
@@ -334,7 +334,7 @@
 
 .mobileSearchBarContainer .searchInput {
   border-right: 1px solid rgba(255,255,255,0.25);
-  background-color: rgba(0,0,0,0.1);
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .mobileSearchBarContainer .searchButton {
@@ -392,18 +392,18 @@
 :global(html.dark) .header { }
 :global(html.dark) .logoImage { filter: brightness(0) invert(1); }
 :global(html.dark) .navLink:hover { box-shadow: 0 0 12px rgba(100,220,150,0.4); }
-:global(html.dark) .iconThemeToggle:hover { background-color: rgba(0,0,0,0.25); box-shadow:0 0 12px rgba(100,220,150,0.3); }
-:global(html.dark) .searchInput { background-color: rgba(255,255,255,0.06); color:#e2e8f0; border-color:rgba(255,255,255,0.2); }
+:global(html.dark) .iconThemeToggle:hover { background-color: rgba(0,0,0,0.25); box-shadow: 0 0 12px rgba(100,220,150,0.3); }
+:global(html.dark) .searchInput { background-color: rgba(0,0,0,0.08); color: #e2e8f0; border-color: rgba(255,255,255,0.2); }
 :global(html.dark) .searchInput::placeholder { color: rgba(255,255,255,0.5); }
 :global(html.dark) .searchInput:focus { background-color: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.5); }
-:global(html.dark) .searchBarShadow { box-shadow:0 0 15px rgba(100,220,150,0.5); }
-:global(html.dark) .connectWalletButtonWrapper:hover { box-shadow:0 0 12px rgba(100,220,150,0.4); }
-:global(html.dark) .mobileMenu { background-color:#143852; }
-:global(html.dark) .mobileNavLink { color:#cbd5e1; border-color:rgba(255,255,255,0.08); }
-:global(html.dark) .mobileNavLink:hover { background-color:rgba(255,255,255,0.06); }
-:global(html.dark) .mobileMenuItemSpecial { background-color:rgba(255,255,255,0.03); border-color:rgba(255,255,255,0.06); }
-:global(html.dark) .mobileSearchBarContainer .searchInput { background-color:rgba(0,0,0,0.08); color:#e2e8f0; border-color:rgba(255,255,255,0.2); }
-:global(html.dark) .mobileSearchBarContainer .searchButton { background-color:#47ad71; }
-:global(html.dark) .mobileSearchBarContainer .searchButton:hover { background-color:#52c280; }
-:global(html.dark) .mobileLangButton { background-color:rgba(0,0,0,0.1); color:#cbd5e1; border-color:rgba(255,255,255,0.08); }
-:global(html.dark) .mobileLangButton:hover { background-color:rgba(255,255,255,0.06); }
+:global(html.dark) .searchBarShadow { box-shadow: 0 0 15px rgba(100,220,150,0.5); }
+:global(html.dark) .connectWalletButtonWrapper:hover { box-shadow: 0 0 12px rgba(100,220,150,0.4); }
+:global(html.dark) .mobileMenu { background-color: #143852; }
+:global(html.dark) .mobileNavLink { color: #cbd5e1; border-color: rgba(255,255,255,0.08); }
+:global(html.dark) .mobileNavLink:hover { background-color: rgba(255,255,255,0.06); }
+:global(html.dark) .mobileMenuItemSpecial { background-color: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.06); }
+:global(html.dark) .mobileSearchBarContainer .searchInput { background-color: rgba(0,0,0,0.08); color: #e2e8f0; border-color: rgba(255,255,255,0.2); }
+:global(html.dark) .mobileSearchBarContainer .searchButton { background-color: #47ad71; }
+:global(html.dark) .mobileSearchBarContainer .searchButton:hover { background-color: #52c280; }
+:global(html.dark) .mobileLangButton { background-color: rgba(0,0,0,0.1); color: #cbd5e1; border-color: rgba(255,255,255,0.08); }
+:global(html.dark) .mobileLangButton:hover { background-color: rgba(255,255,255,0.06); }
