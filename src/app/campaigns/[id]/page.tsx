@@ -9,6 +9,7 @@ import { crowdfundContractConfig } from '../../../blockchain/contracts'
 import { formatUnits } from 'ethers'
 import Image from 'next/image'
 import DonateButton from '../../../components/DonateButton'
+import Footer from '../../../components/Footer'
 
 interface CampaignDetails {
   creator: string
@@ -145,93 +146,97 @@ export default function CampaignDetailPage() {
       : campaign.acceptedToken.slice(0, 6) + '…'
 
   return (
-    <main className="container mx-auto p-6 bg-[#E0F0FF]">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-        {/* Lewa kolumna: obraz + opis */}
-        <div>
-          <div className="w-full rounded-lg overflow-hidden shadow-lg">
-            <Image
-              src={imageUrl}
-              alt={title}
-              width={800}
-              height={600}
-              className="object-cover w-full h-full"
-              priority
-            />
-          </div>
-          <p className="mt-4 text-gray-700">{description}</p>
-        </div>
-
-        {/* Prawa kolumna: szczegóły i Donate */}
-        <div className="flex flex-col">
-          <h1 className="text-4xl font-bold text-[#1F4E79] mb-4">{title}</h1>
-
-          {/* Pasek postępu */}
-          <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
-            <div
-              className="h-4 rounded-full bg-[#00ADEF] transition-all"
-              style={{ width: `${progressPercent}%` }}
-            />
+    <>
+      <main className="container mx-auto p-6 bg-[#E0F0FF]">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+          {/* Lewa kolumna: obraz + opis */}
+          <div>
+            <div className="w-full rounded-lg overflow-hidden shadow-lg">
+              <Image
+                src={imageUrl}
+                alt={title}
+                width={800}
+                height={600}
+                className="object-cover w-full h-full"
+                priority
+              />
+            </div>
+            <p className="mt-4 text-gray-700">{description}</p>
           </div>
 
-          {/* Kwoty w USDC */}
-          <p className="text-2xl font-semibold text-[#1F4E79] mb-6">
-            {formatUSDC(campaign.raisedAmount)} {displayToken}
-            {' / '}
-            {formatUSDC(campaign.targetAmount)} {displayToken}
-            {' '}({progressPercent.toFixed(2)}%)
-          </p>
+          {/* Prawa kolumna: szczegóły i Donate */}
+          <div className="flex flex-col">
+            <h1 className="text-4xl font-bold text-[#1F4E79] mb-4">{title}</h1>
 
-          {/* Pole na wpisanie kwoty */}
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder="Kwota w USDC"
-            value={donationInput}
-            onChange={e => setDonationInput(e.target.value)}
-            className="w-full px-4 py-3 mb-4 border border-gray-300 rounded-lg text-gray-900"
-          />
+            {/* Pasek postępu */}
+            <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
+              <div
+                className="h-4 rounded-full bg-[#00ADEF] transition-all"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
 
-          {/* Przycisk Support (Donate) */}
-          <DonateButton
-            campaignId={idNum}
-            donationAmount={donationInput}
-            className="w-full py-4 mb-8 text-lg font-semibold text-white bg-[#68CC89] hover:bg-[#5fbf7a] rounded-lg transition"
-          >
-            Support
-          </DonateButton>
-
-          {/* Dodatkowe dane kampanii */}
-          <div className="border-t border-gray-300 pt-6 space-y-4 text-[#1F4E79]">
-            <p>
-              <strong>Rozpoczęcie:</strong>{' '}
-              {new Date(Number(campaign.creationTimestamp) * 1000)
-                .toLocaleDateString('pl-PL')}
+            {/* Kwoty w USDC */}
+            <p className="text-2xl font-semibold text-[#1F4E79] mb-6">
+              {formatUSDC(campaign.raisedAmount)} {displayToken}
+              {' / '}
+              {formatUSDC(campaign.targetAmount)} {displayToken}
+              {' '}({progressPercent.toFixed(2)}%)
             </p>
-            <p>
-              <strong>Zakończenie:</strong>{' '}
-              {new Date(Number(campaign.endTime) * 1000)
-                .toLocaleDateString('pl-PL')}
-            </p>
-            {location && (
+
+            {/* Pole na wpisanie kwoty */}
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="Kwota w USDC"
+              value={donationInput}
+              onChange={e => setDonationInput(e.target.value)}
+              className="w-full px-4 py-3 mb-4 border border-gray-300 rounded-lg text-gray-900"
+            />
+
+            {/* Przycisk Support (Donate) */}
+            <DonateButton
+              campaignId={idNum}
+              donationAmount={donationInput}
+              className="w-full py-4 mb-8 text-lg font-semibold text-white bg-[#68CC89] hover:bg-[#5fbf7a] rounded-lg transition"
+            >
+              Support
+            </DonateButton>
+
+            {/* Dodatkowe dane kampanii */}
+            <div className="border-t border-gray-300 pt-6 space-y-4 text-[#1F4E79]">
               <p>
-                <strong>Lokalizacja:</strong> {location}
+                <strong>Rozpoczęcie:</strong>{' '}
+                {new Date(Number(campaign.creationTimestamp) * 1000)
+                  .toLocaleDateString('pl-PL')}
               </p>
-            )}
-            {disease && (
               <p>
-                <strong>Choroba:</strong> {disease}
+                <strong>Zakończenie:</strong>{' '}
+                {new Date(Number(campaign.endTime) * 1000)
+                  .toLocaleDateString('pl-PL')}
               </p>
-            )}
-            {cause && (
-              <p>
-                <strong>Cel zbiórki:</strong> {cause}
-              </p>
-            )}
+              {location && (
+                <p>
+                  <strong>Lokalizacja:</strong> {location}
+                </p>
+              )}
+              {disease && (
+                <p>
+                  <strong>Choroba:</strong> {disease}
+                </p>
+              )}
+              {cause && (
+                <p>
+                  <strong>Cel zbiórki:</strong> {cause}
+                </p>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </main>
+      </main>
+
+      <Footer />
+    </>
   )
 }

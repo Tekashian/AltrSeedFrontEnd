@@ -22,6 +22,7 @@ import MyDonationCard from '../../components/MyDonationCard'
 import CampaignCard from '../../components/CampaignCard'
 import WithdrawButton from '../../components/WithdrawButton'
 import RefundButton from '../../components/RefundButton'
+import Footer from '../../components/Footer'
 
 export default function MyAccountPage() {
   const router = useRouter()
@@ -45,6 +46,10 @@ export default function MyAccountPage() {
 
   // selected tab for history: 'donations' or 'creations'
   const [selectedHistoryTab, setSelectedHistoryTab] = useState<'donations' | 'creations'>('donations')
+
+  // liczba widocznych pozycji w historii (paginacja)
+  const [visibleDonationsCount, setVisibleDonationsCount] = useState<number>(5)
+  const [visibleCreationsCount, setVisibleCreationsCount] = useState<number>(5)
 
   // fetch all campaigns
   const {
@@ -197,202 +202,232 @@ export default function MyAccountPage() {
   }, [isConnected, address, chainId, walletProvider, donationTotals])
 
   return (
-    <main className="container mx-auto p-6 space-y-8 bg-[#E0F0FF]">
-      <h1 className="text-3xl font-bold text-[#1F4E79]">My Account</h1>
+    <>
+      <main className="container mx-auto p-6 space-y-8 bg-[#E0F0FF]">
+        <h1 className="text-3xl font-bold text-[#1F4E79]">My Account</h1>
 
-      {/* Balances */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="p-4 bg-white rounded shadow">
-          <h2 className="font-semibold text-[#1F4E79]">ETH Balance</h2>
-          <p className="text-xl text-[#00ADEF]">{ethBalance} ETH</p>
-        </div>
-        <div className="p-4 bg-white rounded shadow">
-          <h2 className="font-semibold text-[#1F4E79]">USDC Balance</h2>
-          <p className="text-xl text-[#00ADEF]">{usdcBalance} USDC</p>
-        </div>
-      </div>
-
-      {/* Campaign Tabs */}
-      <div className="flex space-x-4 border-b border-gray-300">
-        {(['active','completed','closing','failed','donated'] as const).map(tab => (
-          <button
-            key={tab}
-            onClick={() => setSelectedTab(tab)}
-            className={`pb-2 text-lg font-medium ${
-              selectedTab === tab 
-                ? 'text-[#1F4E79] border-b-2 border-[#1F4E79]' 
-                : 'text-gray-500'
-            }`}
-          >
-            {tab === 'active' ? 'Aktywne'
-              : tab === 'completed' ? 'Zakończone'
-              : tab === 'closing' ? 'Zamykane'
-              : tab === 'failed' ? 'Nie Udane'
-              : 'Moje dotacje'}
-          </button>
-        ))}
-      </div>
-
-      {/* Campaign List */}
-      <section>
-        {campaignsLoading ? (
-          <p>Ładowanie kampanii…</p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {(selectedTab === 'donated' ? donatedCampaigns
-             : selectedTab === 'active'    ? activeCampaigns
-             : selectedTab === 'completed' ? completedCampaigns
-             : selectedTab === 'closing'   ? closingCampaigns
-             : failedCampaigns
-            ).map(c => (
-              <div key={c.campaignId}>
-                {selectedTab === 'donated' ? (
-                  <MyDonationCard campaign={c} />
-                ) : selectedTab === 'closing' ? (
-                  <CampaignCard 
-                    campaign={c} 
-                    refetchCampaigns={refetchCampaigns} 
-                  />
-                ) : selectedTab === 'failed' ? (
-                  <div
-                    className="group bg-white rounded-xl shadow-lg hover:shadow-[0_0_35px_5px_rgba(255,0,0,0.3)]
-                               transition-all duration-300 ease-in-out transform hover:scale-105
-                               overflow-visible cursor-pointer relative"
-                  >
-                    {/* Kliknięcie przeniesie do szczegółów kampanii */}
-                    <div onClick={() => router.push(`/campaigns/${c.campaignId + 1}`)}>
-                      <MyCampaignCard campaign={c} />
-                    </div>
-                    {/* Przyciski akcji dla kampanii "Nie Udane" */}
-                    <div className="p-4 flex flex-col items-center border-t border-gray-100 bg-white">
-                      {(() => {
-                        const nowSec = Math.floor(Date.now() / 1000)
-                        const reclaimDeadline = 
-                          typeof c.reclaimDeadline === 'bigint'
-                            ? Number(c.reclaimDeadline)
-                            : c.reclaimDeadline ?? 0
-                        const isCreator = 
-                          address?.toLowerCase() === c.creator.toLowerCase()
-
-                        if (isCreator && nowSec >= reclaimDeadline) {
-                          return (
-                            <WithdrawButton
-                              campaignId={c.campaignId + 1}
-                              className="px-6 py-3 bg-[#1F4E79] text-white text-lg font-semibold rounded-lg hover:bg-[#163D60] transition"
-                            >
-                              Wypłać środki
-                            </WithdrawButton>
-                          )
-                        } else if (!isCreator && nowSec < reclaimDeadline) {
-                          return (
-                            <RefundButton
-                              campaignId={c.campaignId + 1}
-                              className="px-6 py-3 bg-[#FF5555] text-white text-lg font-semibold rounded-lg hover:bg-[#E04E4E] transition"
-                            >
-                              Zwróć wpłatę
-                            </RefundButton>
-                          )
-                        } else {
-                          // Jeśli creator, a okres nie minął, pokaż informację
-                          // Jeśli donor, a okres minął, nic nie da się zrobić
-                          return (
-                            <p className="text-center text-sm text-gray-600">
-                              {isCreator
-                                ? `Okres zwrotu kończy się ${new Date(reclaimDeadline * 1000).toLocaleString()}`
-                                : 'Okres zwrotu minął'}
-                            </p>
-                          )
-                        }
-                      })()}
-                    </div>
-                  </div>
-                ) : (
-                  <MyCampaignCard campaign={c} />
-                )}
-              </div>
-            ))}
-            {((selectedTab === 'donated'   && donatedCampaigns.length === 0) ||
-              (selectedTab === 'active'    && activeCampaigns.length === 0) ||
-              (selectedTab === 'completed' && completedCampaigns.length === 0) ||
-              (selectedTab === 'closing'   && closingCampaigns.length === 0) ||
-              (selectedTab === 'failed'    && failedCampaigns.length === 0)
-            ) && (
-              <p className="text-gray-500">
-                {selectedTab === 'donated'   ? 'Nie wpłaciłeś jeszcze na żadną kampanię.'
-                  : selectedTab === 'active'    ? 'Brak aktywnych kampanii.'
-                  : selectedTab === 'completed' ? 'Brak zakończonych kampanii.'
-                  : selectedTab === 'closing'   ? 'Brak kampanii w trakcie zamykania.'
-                  : 'Brak nieudanych kampanii.'}
-              </p>
-            )}
+        {/* Balances */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="p-4 bg-white rounded shadow">
+            <h2 className="font-semibold text-[#1F4E79]">ETH Balance</h2>
+            <p className="text-xl text-[#00ADEF]">{ethBalance} ETH</p>
           </div>
-        )}
-      </section>
+          <div className="p-4 bg-white rounded shadow">
+            <h2 className="font-semibold text-[#1F4E79]">USDC Balance</h2>
+            <p className="text-xl text-[#00ADEF]">{usdcBalance} USDC</p>
+          </div>
+        </div>
 
-      {/* History Tabs */}
-      <div className="flex space-x-4 border-b border-gray-300 mt-8">
-        {(['donations','creations'] as const).map(tab => (
-          <button
-            key={tab}
-            onClick={() => setSelectedHistoryTab(tab)}
-            className={`pb-2 text-lg font-medium ${
-              selectedHistoryTab === tab 
-                ? 'text-[#1F4E79] border-b-2 border-[#1F4E79]' 
-                : 'text-gray-500'
-            }`}
-          >
-            {tab === 'donations' ? 'Historia Dotacji' : 'Historia Tworzenia'}
-          </button>
-        ))}
-      </div>
+        {/* Campaign Tabs */}
+        <div className="flex space-x-4 border-b border-gray-300">
+          {(['active','completed','closing','failed','donated'] as const).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setSelectedTab(tab)}
+              className={`pb-2 text-lg font-medium ${
+                selectedTab === tab 
+                  ? 'text-[#1F4E79] border-b-2 border-[#1F4E79]' 
+                  : 'text-gray-500'
+              }`}
+            >
+              {tab === 'active' ? 'Aktywne'
+                : tab === 'completed' ? 'Zakończone'
+                : tab === 'closing' ? 'Zamykane'
+                : tab === 'failed' ? 'Nie Udane'
+                : 'Moje dotacje'}
+            </button>
+          ))}
+        </div>
 
-      {/* History Content */}
-      <section className="space-y-4 mt-4">
-        {selectedHistoryTab === 'donations' ? (
-          donations.length === 0 ? (
-            <p>Brak dotacji.</p>
+        {/* Campaign List */}
+        <section>
+          {campaignsLoading ? (
+            <p>Ładowanie kampanii…</p>
           ) : (
-            donations.map((log, i) => {
-              const args = log.args!
-              return (
-                <div key={i} className="p-4 bg-white rounded shadow">
-                  <p><strong>Kampania #</strong> {args.campaignId.toString()}</p>
-                  <p>
-                    <strong>Kwota:</strong>{' '}
-                    {(Number(args.amountToCampaign) / 10 ** 6).toFixed(2)} USDC
-                  </p>
-                  <p>
-                    <strong>Czas:</strong>{' '}
-                    {new Date(Number(args.timestamp) * 1000).toLocaleString()}
-                  </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {(selectedTab === 'donated' ? donatedCampaigns
+               : selectedTab === 'active'    ? activeCampaigns
+               : selectedTab === 'completed' ? completedCampaigns
+               : selectedTab === 'closing'   ? closingCampaigns
+               : failedCampaigns
+              ).map(c => (
+                <div key={c.campaignId}>
+                  {selectedTab === 'donated' ? (
+                    <MyDonationCard campaign={c} />
+                  ) : selectedTab === 'closing' ? (
+                    <CampaignCard 
+                      campaign={c} 
+                      refetchCampaigns={refetchCampaigns} 
+                    />
+                  ) : selectedTab === 'failed' ? (
+                    <div
+                      className="group bg-white rounded-xl shadow-lg hover:shadow-[0_0_35px_5px_rgba(255,0,0,0.3)]
+                                 transition-all duration-300 ease-in-out transform hover:scale-105
+                                 overflow-visible cursor-pointer relative"
+                    >
+                      {/* Kliknięcie przeniesie do szczegółów kampanii */}
+                      <div onClick={() => router.push(`/campaigns/${c.campaignId + 1}`)}>
+                        <MyCampaignCard campaign={c} />
+                      </div>
+                      {/* Przyciski akcji dla kampanii "Nie Udane" */}
+                      <div className="p-4 flex flex-col items-center border-t border-gray-100 bg-white">
+                        {(() => {
+                          const nowSec = Math.floor(Date.now() / 1000)
+                          const reclaimDeadline = 
+                            typeof c.reclaimDeadline === 'bigint'
+                              ? Number(c.reclaimDeadline)
+                              : c.reclaimDeadline ?? 0
+                          const isCreator = 
+                            address?.toLowerCase() === c.creator.toLowerCase()
+
+                          if (isCreator && nowSec >= reclaimDeadline) {
+                            return (
+                              <WithdrawButton
+                                campaignId={c.campaignId + 1}
+                                className="px-6 py-3 bg-[#1F4E79] text-white text-lg font-semibold rounded-lg hover:bg-[#163D60] transition"
+                              >
+                                Wypłać środki
+                              </WithdrawButton>
+                            )
+                          } else if (!isCreator && nowSec < reclaimDeadline) {
+                            return (
+                              <RefundButton
+                                campaignId={c.campaignId + 1}
+                                className="px-6 py-3 bg-[#FF5555] text-white text-lg font-semibold rounded-lg hover:bg-[#E04E4E] transition"
+                              >
+                                Zwróć wpłatę
+                              </RefundButton>
+                            )
+                          } else {
+                            // Jeśli creator, a okres nie minął, pokaż informację
+                            // Jeśli donor, a okres minął, nic nie da się zrobić
+                            return (
+                              <p className="text-center text-sm text-gray-600">
+                                {isCreator
+                                  ? `Okres zwrotu kończy się ${new Date(reclaimDeadline * 1000).toLocaleString()}`
+                                  : 'Okres zwrotu minął'}
+                              </p>
+                            )
+                          }
+                        })()}
+                      </div>
+                    </div>
+                  ) : (
+                    <MyCampaignCard campaign={c} />
+                  )}
                 </div>
-              )
-            })
-          )
-        ) : creations.length === 0 ? (
-          <p>Brak utworzonych kampanii.</p>
-        ) : (
-          creations.map((log, i) => {
-            const args = log.args!
-            return (
-              <div key={i} className="p-4 bg-white rounded shadow">
-                <p>
-                  <strong>Kampania #</strong> {args.campaignId.toString()}
-                  {' | Typ: '} {args.campaignType}
+              ))}
+              {((selectedTab === 'donated'   && donatedCampaigns.length === 0) ||
+                (selectedTab === 'active'    && activeCampaigns.length === 0) ||
+                (selectedTab === 'completed' && completedCampaigns.length === 0) ||
+                (selectedTab === 'closing'   && closingCampaigns.length === 0) ||
+                (selectedTab === 'failed'    && failedCampaigns.length === 0)
+              ) && (
+                <p className="text-gray-500">
+                  {selectedTab === 'donated'   ? 'Nie wpłaciłeś jeszcze na żadną kampanię.'
+                    : selectedTab === 'active'    ? 'Brak aktywnych kampanii.'
+                    : selectedTab === 'completed' ? 'Brak zakończonych kampanii.'
+                    : selectedTab === 'closing'   ? 'Brak kampanii w trakcie zamykania.'
+                    : 'Brak nieudanych kampanii.'}
                 </p>
-                <p>
-                  <strong>Cel:</strong>{' '}
-                  {(Number(args.targetAmount) / 10 ** 6).toFixed(2)} USDC
-                </p>
-                <p>
-                  <strong>Utworzono:</strong>{' '}
-                  {new Date(Number(args.creationTimestamp) * 1000).toLocaleString()}
-                </p>
-              </div>
-            )
-          })
-        )}
-      </section>
-    </main>
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* History Tabs */}
+        <div className="flex space-x-4 border-b border-gray-300 mt-8">
+          {(['donations','creations'] as const).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setSelectedHistoryTab(tab)}
+              className={`pb-2 tekst-lg font-medium ${
+                selectedHistoryTab === tab 
+                  ? 'text-[#1F4E79] border-b-2 border-[#1F4E79]' 
+                  : 'text-gray-500'
+              }`}
+            >
+              {tab === 'donations' ? 'Historia Dotacji' : 'Historia Tworzenia'}
+            </button>
+          ))}
+        </div>
+
+        {/* History Content */}
+        <section className="space-y-4 mt-4">
+          {selectedHistoryTab === 'donations' ? (
+            <>
+              {donations.slice(0, visibleDonationsCount).map((log, i) => {
+                const args = log.args!
+                return (
+                  <div key={i} className="p-4 bg-white rounded shadow">
+                    <p className="text-black"><strong>Kampania #</strong> {args.campaignId.toString()}</p>
+                    <p className="text-black">
+                      <strong>Kwota:</strong>{' '}
+                      {(Number(args.amountToCampaign) / 10 ** 6).toFixed(2)} USDC
+                    </p>
+                    <p className="text-black">
+                      <strong>Czas:</strong>{' '}
+                      {new Date(Number(args.timestamp) * 1000).toLocaleString()}
+                    </p>
+                  </div>
+                )
+              })}
+              {donations.length > visibleDonationsCount && (
+                <div className="flex justify-center mt-4">
+                  <button
+                    onClick={() => setVisibleDonationsCount(prev => prev + 5)}
+                    className="px-4 py-2 bg-[#1F4E79] text-white rounded hover:bg-[#163D60] transition"
+                  >
+                    Pokaż więcej
+                  </button>
+                </div>
+              )}
+              {donations.length === 0 && <p className="text-black">Brak dotacji.</p>}
+            </>
+          ) : (
+            <>
+              {creations.slice(0, visibleCreationsCount).map((log, i) => {
+                const args = log.args!
+                // Konwertowanie campaignType z BigNumber lub string na number:
+                const typeValue = Number(args.campaignType)
+                // Przekształć campaignType: 0 => "Startup", 1 => "Charity"
+                const typeLabel = typeValue === 0 ? 'Startup' : 'Charity'
+                return (
+                  <div key={i} className="p-4 bg-white rounded shadow">
+                    <p className="text-black">
+                      <strong>Kampania #</strong> {args.campaignId.toString()}
+                    </p>
+                    <p className="text-black">
+                      <strong>Typ:</strong> {typeLabel}
+                    </p>
+                    <p className="text-black">
+                      <strong>Cel:</strong>{' '}
+                      {(Number(args.targetAmount) / 10 ** 6).toFixed(2)} USDC
+                    </p>
+                    <p className="text-black">
+                      <strong>Utworzono:</strong>{' '}
+                      {new Date(Number(args.creationTimestamp) * 1000).toLocaleString()}
+                    </p>
+                  </div>
+                )
+              })}
+              {creations.length > visibleCreationsCount && (
+                <div className="flex justify-center mt-4">
+                  <button
+                    onClick={() => setVisibleCreationsCount(prev => prev + 5)}
+                    className="px-4 py-2 bg-[#1F4E79] text-white rounded hover:bg-[#163D60] transition"
+                  >
+                    Pokaż więcej
+                  </button>
+                </div>
+              )}
+              {creations.length === 0 && <p className="text-black">Brak utworzonych kampanii.</p>}
+            </>
+          )}
+        </section>
+      </main>
+
+      <Footer />
+    </>
   )
 }

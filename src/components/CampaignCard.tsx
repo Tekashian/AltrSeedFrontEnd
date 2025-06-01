@@ -127,6 +127,7 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
     <div
       className="group bg-white rounded-xl shadow-lg hover:shadow-[0_0_35px_5px_rgba(0,255,255,0.3)] transition-all duration-300 ease-in-out transform hover:scale-105 overflow-visible cursor-pointer relative"
       onClick={() => router.push(`/campaigns/${idx + 1}`)}
+      style={{ minHeight: '500px' }}
     >
       {/* Małe menu w prawym górnym rogu */}
       <div className="absolute top-2 right-2">
@@ -158,7 +159,7 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
       </div>
 
       {/* Baner + status */}
-      <div className="relative w-full h-56 md:h-64 overflow-hidden">
+      <div className="relative w-full h-[306px] md:h-[338px] overflow-hidden">
         <Image
           src={finalImageUrl}
           alt={title}

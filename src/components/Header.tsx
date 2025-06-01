@@ -1,5 +1,6 @@
 // src/components/Header.tsx
 'use client';
+
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -118,6 +119,7 @@ const SearchBar = ({
 // --- GŁÓWNY KOMPONENT HEADER ---
 const Header = () => {
   const [isMounted, setIsMounted] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [isLogoHovered, setIsLogoHovered] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -127,6 +129,7 @@ const Header = () => {
   // cień przy hover na logo
   const darkHoverBoxShadow = '0 0 12px rgba(100, 220, 150, 0.4)';
 
+  // Ustawienie początkowego stanu dark/light
   useEffect(() => {
     setIsMounted(true);
     const savedTheme = localStorage.getItem('theme');
@@ -140,6 +143,22 @@ const Header = () => {
     }
   }, []);
 
+  // Obsługa scrollowania: jeśli scrollY > 0, ustawiamy scrolled = true
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 0) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  // Obsługa kliknięcia poza menu mobilnym
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (headerRef.current && !headerRef.current.contains(e.target as Node)) {
@@ -159,6 +178,7 @@ const Header = () => {
     };
   }, [isMobileMenuOpen]);
 
+  // Przełącznik Dark Mode / Light Mode
   const toggleDarkMode = () => {
     setDarkMode((prev) => {
       const next = !prev;
@@ -174,17 +194,16 @@ const Header = () => {
   if (!isMounted) {
     return (
       <header
-        className={styles.headerPlaceholder}
-        style={{ minHeight: '49px', position: 'relative' }}
+        className={`${styles.header} ${styles.unscrolled}`}
+        style={{ minHeight: '49px' }}
       />
     );
   }
 
   return (
     <header
-      className={styles.header}
       ref={headerRef}
-      style={{ position: 'relative' }}
+      className={`${styles.header} ${scrolled ? styles.scrolled : styles.unscrolled}`}
     >
       <nav className={styles.nav}>
         <div className={styles.logoContainer}>
@@ -214,11 +233,15 @@ const Header = () => {
 
         <div className={styles.navDesktop}>
           <div className={styles.navLeft}>
-            <Link href="/startups" className={styles.navLink}>Startups</Link>
-            <Link href="/charities" className={styles.navLink}>Charities</Link>
-            <Link href="/my-account" className={styles.navLink}>My Account</Link>
-            <Link href="/whitepaper" className={styles.navLink}>WhitePaper</Link>
-            <Link href="/contact" className={styles.navLink}>Contact</Link>
+            <Link href="/my-account" className={styles.navLink}>
+              My Account
+            </Link>
+            <Link href="/whitepaper" className={styles.navLink}>
+              WhitePaper
+            </Link>
+            <Link href="/contact" className={styles.navLink}>
+              Contact
+            </Link>
           </div>
 
           <div className={styles.navCenter} />
@@ -248,7 +271,7 @@ const Header = () => {
           </div>
         </div>
 
-        {/* mobile */}
+        {/* MOBILE */}
         <div className={styles.mobileHeaderControls}>
           <button
             onClick={handleLanguageChange}
@@ -279,20 +302,28 @@ const Header = () => {
       {isMobileMenuOpen && (
         <div className={`${styles.mobileMenu} ${styles.mobileMenuOpen}`}>
           <div className={styles.mobileMenuContent}>
-            <Link href="/startups" className={styles.mobileNavLink} onClick={toggleMobileMenu}>Startups</Link>
-            <Link href="/charities" className={styles.mobileNavLink} onClick={toggleMobileMenu}>Charities</Link>
-            <Link href="/my-account" className={styles.mobileNavLink} onClick={toggleMobileMenu}>My Account</Link>
-            <Link href="/whitepaper" className={styles.mobileNavLink} onClick={toggleMobileMenu}>WhitePaper</Link>
-            <Link href="/contact" className={styles.mobileNavLink} onClick={toggleMobileMenu}>Contact</Link>
+            <Link href="/my-account" className={styles.mobileNavLink} onClick={toggleMobileMenu}>
+              My Account
+            </Link>
+            <Link href="/whitepaper" className={styles.mobileNavLink} onClick={toggleMobileMenu}>
+              WhitePaper
+            </Link>
+            <Link href="/contact" className={styles.mobileNavLink} onClick={toggleMobileMenu}>
+              Contact
+            </Link>
             <div className={`${styles.mobileMenuItem} ${styles.mobileMenuItemSpecial}`}>
               <SearchBar isFocused={isSearchFocused} setFocused={setIsSearchFocused} isMobile />
             </div>
-            <div className={styles.mobileMenuItem}>
-              <button onClick={() => { handleLanguageChange(); toggleMobileMenu(); }} className={styles.mobileLangButton}>
-                Change Language
-              </button>
-            </div>
-            <div className={`${styles.mobileMenuItem} ${styles.connectWalletMobileWrapper}`}>
+            <button
+              onClick={() => {
+                handleLanguageChange();
+                toggleMobileMenu();
+              }}
+              className={styles.mobileLangButton}
+            >
+              Change Language
+            </button>
+            <div className={styles.connectWalletMobileWrapper}>
               <w3m-button />
             </div>
           </div>

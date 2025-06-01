@@ -1,14 +1,45 @@
 /* src/components/Header.module.css */
+
+/* ----------------------------------------
+   Podstawowa klasa: position: sticky
+---------------------------------------- */
 .header {
-  background-color: #1E1B2E;
-  /* padding zmniejszone o ~30%: z 0.75rem → 0.525rem, z 1.25rem → 0.875rem */
-  padding: 0.00001rem 0.975rem;
-  color: white;
-  transition: padding 0.3s ease-in-out;
-  position: relative;
-  z-index: 50;
+  position: sticky;
+  top: 0;
+  z-index: 1000;  /* Zwiększony z-index, aby header zawsze był nad innymi elementami */
+  transition: background-color 0.3s ease, backdrop-filter 0.3s ease, padding 0.3s ease-in-out;
+  pointer-events: auto;  /* Upewniamy się, że header reaguje na kliknięcia */
 }
 
+/* ----------------------------------------
+   1) Stan „nie przewinięto” (unscrolled):
+      - Pełna, nieprzezroczysta barwa (tak jak stopka)
+      - Brak blur
+---------------------------------------- */
+.unscrolled {
+  background-color: #1E1B2E; /* Taki sam kolor jak Footer */
+  backdrop-filter: none;
+  padding: 0.525rem 0.875rem;
+  color: white;
+  pointer-events: auto;
+}
+
+/* ----------------------------------------
+   2) Stan „przewinięto” (scrolled):
+      - Półprzezroczysty, z blur
+      - Padding zachowany
+---------------------------------------- */
+.scrolled {
+  background-color: rgba(30, 27, 46, 0.7);
+  backdrop-filter: blur(12px);
+  padding: 0.525rem 0.875rem;
+  color: white;
+  pointer-events: auto;
+}
+
+/* ----------------------------------------
+   Placeholder (gdy komponent nie jest jeszcze wyrenderowany)
+---------------------------------------- */
 .headerPlaceholder {
   background-color: #1E1B2E;
   padding: 0.525rem 0.875rem;
@@ -17,14 +48,17 @@
   align-items: center;
 }
 
+/* ----------------------------------------
+   Główne nav + logo + linki
+---------------------------------------- */
 .nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  /* min-height zmniejszone o ~30%: z 42px → 30px */
   min-height: 30px;
   width: 100%;
 }
+
 .logoContainer {
   display: flex;
   align-items: center;
@@ -113,8 +147,9 @@
   box-shadow: 0 0 12px rgba(100, 220, 150, 0.4);
 }
 
-.desktopThemeToggle { }
-
+/* ----------------------------------------
+   SearchBar – kontener + input + button
+---------------------------------------- */
 .searchBarContainer {
   display: flex;
   align-items: center;
@@ -143,7 +178,7 @@
   height: 36px;
   box-sizing: border-box;
   min-width: 130px;
-  max-width: 200px;
+  max-width: 240px; /* Nieco większy input na większym ekranie */
 }
 
 .searchInput::placeholder {
@@ -202,7 +237,9 @@
   box-shadow: 0 0 12px rgba(100, 220, 150, 0.5);
 }
 
-/* --- MOBILE --- */
+/* ----------------------------------------
+   Style menu mobilnego (iPad/tablet/telefon)
+---------------------------------------- */
 .mobileHeaderControls {
   display: none;
   align-items: center;
@@ -241,6 +278,7 @@
   height: 28px;
 }
 
+/* Overlay dla menu mobilnego (pełny ekran) */
 .mobileMenu {
   display: flex;
   flex-direction: column;
@@ -249,8 +287,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #1E1B2E;
-  backdrop-filter: blur(3px);
+  background-color: rgba(30, 27, 46, 0.7);
+  backdrop-filter: blur(12px);
   padding: 1rem;
   box-shadow: 0 8px 24px rgba(0,0,0,0.3);
   z-index: 1001;
@@ -263,18 +301,26 @@
   transform: translateX(0);
 }
 
+/* Kontener z linkami/przyciskami w menu mobilnym */
 .mobileMenuContent {
-  padding-top: calc(28px + 1rem + 0.5rem);
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;            /* Równe odstępy między elementami */
+  align-items: center;  /* Wyśrodkowanie w poziomie */
+  justify-content: flex-start;
+  width: 100%;
+  max-width: 480px;     /* Maksymalna szerokość booklayout na tablecie */
+  margin: 0 auto;       /* Wycentrowanie horyzontalne */
+  padding-top: 1.5rem;  /* Trochę więcej od góry, by ikona zamykania nie nachodziła */
 }
 
 .mobileNavLink {
   color: white;
   text-decoration: none;
-  padding: 0.8rem 1rem;
+  padding: 0.9rem 1.2rem;
   display: block;
+  width: 100%;          /* Pełna szerokość kontenera */
+  max-width: 360px;     /* Nie za szerokie */
   border-radius: 8px;
   transition: background-color 0.2s ease, transform 0.2s ease;
   font-size: 1.05rem;
@@ -288,6 +334,7 @@
   transform: scale(1.01);
 }
 
+/* Dodatkowy kontener wokół SearchBar (element specjalny) */
 .mobileMenuItem {
   display: flex;
   flex-direction: column;
@@ -295,23 +342,16 @@
   width: 100%;
 }
 
-.mobileMenuItem > * {
-  width: 100%;
-  max-width: 320px;
-  margin-bottom: 0.5rem;
-}
-
-.mobileMenuItem > *:last-child {
-  margin-bottom: 0;
-}
-
 .mobileMenuItemSpecial {
   background-color: rgba(255,255,255,0.05);
   padding: 0.6rem;
   border-radius: 8px;
   border: 1px solid rgba(255,255,255,0.08);
+  width: 100%;
+  max-width: 360px;  /* Taki sam max-width jak przy linkach */
 }
 
+/* SearchBar wewnątrz menu mobilnego – pełna szerokość + schludny wygląd */
 .mobileSearchBarContainer {
   flex-direction: column;
   gap: 0.75rem;
@@ -320,6 +360,7 @@
   background-color: transparent;
   padding: 0;
   border: none;
+  width: 100%;
 }
 
 .mobileSearchBarContainer .searchInput,
@@ -345,12 +386,13 @@
   background-color: #63D391;
 }
 
+/* Przycisk zmiany języka wewnątrz menu mobilnego */
 .mobileLangButton {
   color: white;
   text-decoration: none;
-  padding: 0.8rem 1rem;
+  padding: 0.9rem 1.2rem;
   width: 100%;
-  max-width: 320px;
+  max-width: 360px;
   border-radius: 8px;
   background-color: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.1);
@@ -369,16 +411,21 @@
   padding-top: 0.5rem;
   display: flex;
   justify-content: center;
+  width: 100%;
+  max-width: 360px;
 }
 
-/* --- BREAKPOINTY --- */
+/* ----------------------------------------
+   BREAKPOINTY (dostosowania dla tabletów i telefonów)
+---------------------------------------- */
 @media (max-width: 1414px) {
   .navDesktop { display: none; }
   .mobileHeaderControls { display: flex; }
   .mobileInlineThemeToggle { display: flex; }
   .hamburgerMenuButtonContainer { display: flex; }
-  .header { padding: 0.6rem 1rem; }
-  .headerPlaceholder { padding: 0.6rem 1rem; }
+
+  /* Nieco zmniejszony padding w nagłówku na małych ekranach */
+  .unscrolled, .scrolled { padding: 0.6rem 1rem; }
 }
 
 @media (max-width: 480px) {
@@ -388,8 +435,11 @@
   .mobileMenuContent { padding-top: calc(28px + 0.6rem + 0.5rem); }
 }
 
-/* --- STYLE DLA CIEMNEGO MOTYWU --- */
-:global(html.dark) .header { }
+/* ----------------------------------------
+   STYLE DLA CIEMNEGO MOTYWU (html.dark)
+---------------------------------------- */
+:global(html.dark) .unscrolled { }
+:global(html.dark) .scrolled { }
 :global(html.dark) .logoImage { filter: brightness(0) invert(1); }
 :global(html.dark) .navLink:hover { box-shadow: 0 0 12px rgba(100,220,150,0.4); }
 :global(html.dark) .iconThemeToggle:hover { background-color: rgba(0,0,0,0.25); box-shadow: 0 0 12px rgba(100,220,150,0.3); }
@@ -398,7 +448,7 @@
 :global(html.dark) .searchInput:focus { background-color: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.5); }
 :global(html.dark) .searchBarShadow { box-shadow: 0 0 15px rgba(100,220,150,0.5); }
 :global(html.dark) .connectWalletButtonWrapper:hover { box-shadow: 0 0 12px rgba(100,220,150,0.4); }
-:global(html.dark) .mobileMenu { background-color: #143852; }
+:global(html.dark) .mobileMenu { background-color: rgba(30, 21, 52, 0.7); backdrop-filter: blur(12px); }
 :global(html.dark) .mobileNavLink { color: #cbd5e1; border-color: rgba(255,255,255,0.08); }
 :global(html.dark) .mobileNavLink:hover { background-color: rgba(255,255,255,0.06); }
 :global(html.dark) .mobileMenuItemSpecial { background-color: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.06); }
