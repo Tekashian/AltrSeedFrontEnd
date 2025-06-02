@@ -6,10 +6,18 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useAccount } from 'wagmi'
 import { type Campaign } from '../hooks/useCrowdfund'
+
+// Importujemy przyciski jako oddzielne komponenty
 import CloseCampaignButton from './CloseCampaignButton'
+import WithdrawButton from './WithdrawButton'
+import RefundButton from './RefundButton'
 
 interface MyCampaignCardProps {
   campaign: Campaign
+  hasReclaimedMap: Record<number, boolean>
+  onInitiateClosure: (campaignId: number) => Promise<void>
+  onWithdraw: (campaignId: number, dataCID: string) => Promise<void>
+  onClaimRefund: (campaignId: number) => Promise<void>
 }
 
 interface CampaignMetadata {
@@ -18,11 +26,13 @@ interface CampaignMetadata {
   image?: string
 }
 
+// Stałe pomocnicze
 const USDC_TOKEN_ADDRESS_SEPOLIA =
   '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
 const IPFS_GATEWAY_PREFIX = 'https://ipfs.io/ipfs/'
 const PLACEHOLDER_IMAGE = '/images/BanerAltrSeed.jpg'
 
+// Pomocnicze formatowanie
 const getCampaignStatusText = (status: number): string => {
   switch (status) {
     case 0:
@@ -30,11 +40,9 @@ const getCampaignStatusText = (status: number): string => {
     case 1:
       return 'Zakończona'
     case 2:
-      return 'Nieudana'
-    case 3:
       return 'Zamykanie'
-    case 4:
-      return 'Zamknięta'
+    case 5:
+      return 'Nieudana'
     default:
       return `Status (${status})`
   }
@@ -55,7 +63,13 @@ const formatAmount = (
   return `${integerPart}.${frac}`
 }
 
-const MyCampaignCard: React.FC<MyCampaignCardProps> = ({ campaign }) => {
+const MyCampaignCard: React.FC<MyCampaignCardProps> = ({
+  campaign,
+  hasReclaimedMap,
+  onInitiateClosure,
+  onWithdraw,
+  onClaimRefund
+}) => {
   const router = useRouter()
   const { address } = useAccount()
   const [metadata, setMetadata] = useState<CampaignMetadata | null>(null)
@@ -65,7 +79,7 @@ const MyCampaignCard: React.FC<MyCampaignCardProps> = ({ campaign }) => {
   const cid = campaign.dataCID.trim() || ''
   const idx = campaign.campaignId ?? 0
 
-  // Pobierz metadane z IPFS
+  // --- Pobieranie metadanych z IPFS ---
   useEffect(() => {
     setIsLoadingMetadata(true)
     setMetadata(null)
@@ -91,25 +105,25 @@ const MyCampaignCard: React.FC<MyCampaignCardProps> = ({ campaign }) => {
         }
       })
       .catch(() => {
-        /* ignoruj błędy */
+        /* ignorujemy błędy */
       })
       .finally(() => setIsLoadingMetadata(false))
   }, [cid])
 
-  // Oblicz postęp procentowy
+  // --- Obliczamy postęp kampanii ---
   const progress =
     campaign.targetAmount > 0n
       ? Number((campaign.raisedAmount * 10000n) / campaign.targetAmount) / 100
       : 0
 
-  // Wskaż, czy token to USDC, aby wyświetlić skrót
+  // Skrót tokena (USDC lub adres)
   const displayToken =
     campaign.acceptedToken.toLowerCase() ===
     USDC_TOKEN_ADDRESS_SEPOLIA.toLowerCase()
       ? 'USDC'
       : campaign.acceptedToken.slice(0, 6) + '…'
 
-  // Przygotuj tytuł i opis
+  // Budujemy tytuł/ opis
   const title = isLoadingMetadata
     ? 'Ładowanie…'
     : metadata?.title || `Kampania #${idx + 1}`
@@ -125,7 +139,7 @@ const MyCampaignCard: React.FC<MyCampaignCardProps> = ({ campaign }) => {
 
   const statusText = getCampaignStatusText(campaign.status)
 
-  // Rozwiąż URL do banera
+  // Budujemy URL do obrazka (banera)
   let finalImageUrl: string
   const isTestCid = cid.startsWith('Test')
   if (!metadata?.image || isTestCid) {
@@ -141,30 +155,104 @@ const MyCampaignCard: React.FC<MyCampaignCardProps> = ({ campaign }) => {
     finalImageUrl = `${IPFS_GATEWAY_PREFIX}${metadata.image}`
   }
 
-  // Sprawdź, czy przycisk "Zamknij kampanię" powinien być widoczny
+  // Sprawdzamy, jakie przyciski pokazać:
   const [showCloseButton, setShowCloseButton] = useState(false)
+  const [showWithdrawButton, setShowWithdrawButton] = useState(false)
+  const [showRefundButton, setShowRefundButton] = useState(false)
 
   useEffect(() => {
     const nowSec = Math.floor(Date.now() / 1000)
+
     const endTimeNumber =
       typeof campaign.endTime === 'bigint'
         ? Number(campaign.endTime)
         : campaign.endTime ?? 0
 
-    const hasReachedGoal = campaign.raisedAmount >= campaign.targetAmount
-    const hasEnded = nowSec >= endTimeNumber
-    const isActive = campaign.status === 0 // 0 = Active
+    const isActive = campaign.status === 0       // 0 = Active
+    const isCompleted = campaign.status === 1    // 1 = Completed
+    const isClosing = campaign.status === 2      // 2 = Closing
+    const isFailed = campaign.status === 5       // 5 = Failed
     const isCreator =
       address?.toLowerCase() === campaign.creator.toLowerCase()
+    const hasDonorReclaimed = hasReclaimedMap[campaign.campaignId]
 
-    // Jeśli kampania osiągnęła cel, czas zakończenia minął, status to Active
-    // oraz jeśli zalogowany użytkownik jest twórcą, pokaż przycisk zamknięcia
-    if (hasReachedGoal && hasEnded && isActive && isCreator) {
-      setShowCloseButton(true)
-    } else {
+    // 1) Jeśli status = Completed i jesteś twórcą → pokaż „Wypłać”
+    if (isCompleted && isCreator) {
+      setShowWithdrawButton(true)
       setShowCloseButton(false)
+      setShowRefundButton(false)
+      return
     }
-  }, [campaign, address])
+
+    // 2) Jeśli status = Active i jesteś twórcą → pokaż „Zamknij kampanię”
+    if (isActive && isCreator) {
+      setShowCloseButton(true)
+      setShowWithdrawButton(false)
+      setShowRefundButton(false)
+      return
+    }
+
+    // 3) Jeśli status = Closing:
+    if (isClosing) {
+      const reclaimDeadline =
+        typeof campaign.reclaimDeadline === 'bigint'
+          ? Number(campaign.reclaimDeadline)
+          : campaign.reclaimDeadline ?? 0
+
+      // 3a) Darczyńca może refundować, jeżeli okres zwrotu jeszcze trwa:
+      if (!isCreator && nowSec < reclaimDeadline && !hasDonorReclaimed) {
+        setShowRefundButton(true)
+        setShowCloseButton(false)
+        setShowWithdrawButton(false)
+        return
+      }
+
+      // 3b) Twórca może wypłacić dopiero po upływie reclaimDeadline:
+      if (isCreator && nowSec >= reclaimDeadline) {
+        setShowWithdrawButton(true)
+        setShowCloseButton(false)
+        setShowRefundButton(false)
+        return
+      }
+
+      // Pozostałe przypadki → nic nie wyświetlamy (np. darczyńca po reclaimDeadline)
+      setShowCloseButton(false)
+      setShowWithdrawButton(false)
+      setShowRefundButton(false)
+      return
+    }
+
+    // 4) Jeśli status = Failed (nieudana, po wywołaniu failCampaignIfUnsuccessful):
+    if (isFailed) {
+      // 4a) Darczyńca może refundować, jeśli jeszcze nie zrefundował
+      if (!isCreator && !hasDonorReclaimed) {
+        setShowRefundButton(true)
+        setShowCloseButton(false)
+        setShowWithdrawButton(false)
+        return
+      }
+
+      // 4b) Twórca może wypłacić pozostałe, jeśli pozostały środki > 0:
+      if (isCreator && Number(campaign.raisedAmount) > 0) {
+        setShowWithdrawButton(true)
+        setShowCloseButton(false)
+        setShowRefundButton(false)
+        return
+      }
+
+      // W innych przypadkach – nic nie pokazujemy
+      setShowCloseButton(false)
+      setShowWithdrawButton(false)
+      setShowRefundButton(false)
+      return
+    }
+
+    // W każdym innym wypadku (np. Active bez roli twórcy) – chowamy wszystko
+    setShowCloseButton(false)
+    setShowWithdrawButton(false)
+    setShowRefundButton(false)
+
+  }, [campaign, address, hasReclaimedMap])
 
   return (
     <div
@@ -173,7 +261,7 @@ const MyCampaignCard: React.FC<MyCampaignCardProps> = ({ campaign }) => {
                  overflow-visible cursor-pointer relative"
       onClick={() => router.push(`/campaigns/${idx + 1}`)}
     >
-      {/* opcjonalne menu rozwijane */}
+      {/* --- opcjonalne menu rozwijane --- */}
       <div className="absolute top-2 right-2">
         <button
           className="p-1 rounded-full hover:bg-gray-200"
@@ -210,7 +298,7 @@ const MyCampaignCard: React.FC<MyCampaignCardProps> = ({ campaign }) => {
         )}
       </div>
 
-      {/* banner */}
+      {/* --- banner --- */}
       <div className="relative w-full h-56 md:h-64 overflow-hidden">
         <Image
           src={finalImageUrl}
@@ -228,7 +316,7 @@ const MyCampaignCard: React.FC<MyCampaignCardProps> = ({ campaign }) => {
         </span>
       </div>
 
-      {/* content */}
+      {/* --- content --- */}
       <div className="p-4">
         <h3 className="text-lg font-bold text-gray-900 mb-2 truncate">
           {title}
@@ -255,15 +343,34 @@ const MyCampaignCard: React.FC<MyCampaignCardProps> = ({ campaign }) => {
         </p>
       </div>
 
-      {/* przycisk "Zamknij kampanię" zawsze widoczny */}
+      {/* --- Sekcja przycisków --- */}
       <div className="p-4 flex justify-center border-t border-gray-100">
         <div onClick={(e) => e.stopPropagation()}>
-          <CloseCampaignButton
-            campaignId={idx + 1}
-            className="px-6 py-3 bg-[#FF5555] text-white text-lg font-semibold rounded-lg hover:bg-[#E04E4E] transition"
-          >
-            Rozpocznij zamknięcie
-          </CloseCampaignButton>
+          {showWithdrawButton ? (
+            <WithdrawButton
+              campaignId={idx + 1}
+              className="px-6 py-3 bg-green-500 text-white text-lg font-semibold rounded-lg hover:bg-green-600 transition"
+              onClick={() => onWithdraw(idx, cid)}
+            >
+              Wypłać
+            </WithdrawButton>
+          ) : showCloseButton ? (
+            <CloseCampaignButton
+              campaignId={idx + 1}
+              className="px-6 py-3 bg-orange-500 text-white text-lg font-semibold rounded-lg hover:bg-orange-600 transition"
+              onClick={() => onInitiateClosure(idx)}
+            >
+              Rozpocznij zamknięcie
+            </CloseCampaignButton>
+          ) : showRefundButton ? (
+            <RefundButton
+              campaignId={idx + 1}
+              className="px-6 py-3 bg-red-500 text-white text-lg font-semibold rounded-lg hover:bg-red-600 transition"
+              onClick={() => onClaimRefund(idx)}
+            >
+              Zwróć wpłatę
+            </RefundButton>
+          ) : null}
         </div>
       </div>
     </div>

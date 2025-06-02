@@ -24,7 +24,8 @@
     "react-dom": "^19.0.0",
     "react-slick": "^0.30.3",
     "slick-carousel": "^1.8.1",
-    "wagmi": "^2.15.2"
+    "wagmi": "^2.15.2",
+    "web3.storage": "^4.5.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

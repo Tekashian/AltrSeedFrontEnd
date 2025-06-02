@@ -135,34 +135,12 @@ export default function HomePage() {
         />
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
           <h1 className="text-4xl font-bold text-white">
-            Have an idea? Need support?
+            Sadz dobro pozwol rosnac ludzią
           </h1>
           <p className="mt-2 text-lg text-white">
             Launch your campaign today and make your vision a reality!
           </p>
         </div>
-      </div>
-
-      {/* Sticky button do tworzenia kampanii */}
-      <div
-        className="
-          sticky top-[70px] z-[1000] flex justify-center bg-transparent
-          -mt-[50px] lg:-mt-[80px]
-        "
-      >
-        <button
-          onClick={() => router.push("/create-campaign")}
-          className="
-            bg-[#68CC89] text-white
-            transform transition duration-200 ease-in-out
-            hover:scale-105 hover:shadow-[0_0_12px_rgba(99,211,145,0.5)]
-            px-6 sm:px-8 md:px-10 py-2 sm:py-3 md:py-4
-            text-lg sm:text-xl md:text-2xl
-            rounded-full
-          "
-        >
-          Create Campaign
-        </button>
       </div>
 
       {/* Główna zawartość */}
