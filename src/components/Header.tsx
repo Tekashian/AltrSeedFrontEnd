@@ -4,6 +4,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import styles from './Header.module.css';
 
 // --- IKONY ---
@@ -84,7 +85,7 @@ const TranslatorIcon = () => (
   </svg>
 );
 
-// --- KOMPONENT PODRZĘDNY ---
+// --- SearchBar komponent ---
 const SearchBar = ({
   isFocused,
   setFocused,
@@ -118,6 +119,7 @@ const SearchBar = ({
 
 // --- GŁÓWNY KOMPONENT HEADER ---
 const Header = () => {
+  const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -126,10 +128,9 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
 
-  // cień przy hover na logo
   const darkHoverBoxShadow = '0 0 12px rgba(100, 220, 150, 0.4)';
 
-  // Ustawienie początkowego stanu dark/light
+  // Ustawienie dark/light
   useEffect(() => {
     setIsMounted(true);
     const savedTheme = localStorage.getItem('theme');
@@ -143,19 +144,13 @@ const Header = () => {
     }
   }, []);
 
-  // Obsługa scrollowania: jeśli scrollY > 0, ustawiamy scrolled = true
+  // Obsługa scrollowania
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 0) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
+      setScrolled(window.scrollY > 0);
     };
     window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Obsługa kliknięcia poza menu mobilnym
@@ -178,7 +173,7 @@ const Header = () => {
     };
   }, [isMobileMenuOpen]);
 
-  // Przełącznik Dark Mode / Light Mode
+  // Toggle dark/light
   const toggleDarkMode = () => {
     setDarkMode((prev) => {
       const next = !prev;
@@ -188,16 +183,12 @@ const Header = () => {
     });
   };
 
-  const handleLanguageChange = () => console.log('Language change clicked');
+  const handleLanguageChange = () => console.log('Change language clicked');
   const toggleMobileMenu = () => setIsMobileMenuOpen((m) => !m);
 
   if (!isMounted) {
-    return (
-      <header
-        className={`${styles.header} ${styles.unscrolled}`}
-        style={{ minHeight: '49px' }}
-      />
-    );
+    // Placeholder, aby uniknąć skoku layoutu przed inicjacją stanu
+    return <header className={`${styles.header} ${styles.unscrolled}`} style={{ minHeight: '80px' }} />;
   }
 
   return (
@@ -206,7 +197,8 @@ const Header = () => {
       className={`${styles.header} ${scrolled ? styles.scrolled : styles.unscrolled}`}
     >
       <nav className={styles.nav}>
-        <div className={styles.logoContainer}>
+        {/* --- LEWA CZĘŚĆ (logo + linki) --- */}
+        <div className={styles.navLeft}>
           <Link
             href="/"
             className={styles.logoWrapper}
@@ -229,49 +221,51 @@ const Header = () => {
               priority
             />
           </Link>
+          <Link href="/my-account" className={styles.navLink}>
+            My Account
+          </Link>
+          <Link href="/whitepaper" className={styles.navLink}>
+            WhitePaper
+          </Link>
+          <Link href="/contact" className={styles.navLink}>
+            Contact
+          </Link>
         </div>
 
-        <div className={styles.navDesktop}>
-          <div className={styles.navLeft}>
-            <Link href="/my-account" className={styles.navLink}>
-              My Account
-            </Link>
-            <Link href="/whitepaper" className={styles.navLink}>
-              WhitePaper
-            </Link>
-            <Link href="/contact" className={styles.navLink}>
-              Contact
-            </Link>
-          </div>
+        {/* --- ŚRODEK (przycisk Create Campaign) --- */}
+        <div className={styles.navCenter}>
+          <button
+            onClick={() => router.push('/create-campaign')}
+            className={styles.createCampaignButton}
+          >
+            <span className={styles.buttonIcon}>🚀</span>
+            Create Campaign
+          </button>
+        </div>
 
-          <div className={styles.navCenter} />
-
-          <div className={styles.navRight}>
-            <SearchBar isFocused={isSearchFocused} setFocused={setIsSearchFocused} />
-
-            <button
-              onClick={handleLanguageChange}
-              className={`${styles.iconThemeToggle} ${styles.desktopThemeToggle}`}
-              title="Change language"
-            >
-              <TranslatorIcon />
-            </button>
-
-            <button
-              onClick={toggleDarkMode}
-              className={`${styles.iconThemeToggle} ${styles.desktopThemeToggle}`}
-              title={darkMode ? 'Light Mode' : 'Dark Mode'}
-            >
-              {darkMode ? <SunIcon /> : <MoonIcon />}
-            </button>
-
-            <div className={styles.connectWalletButtonWrapper}>
-              <w3m-button />
-            </div>
+        {/* --- PRAWA CZĘŚĆ (SearchBar + ikony + Connect Wallet – w3m-button) --- */}
+        <div className={styles.navRight}>
+          <SearchBar isFocused={isSearchFocused} setFocused={setIsSearchFocused} />
+          <button
+            onClick={handleLanguageChange}
+            className={`${styles.iconThemeToggle} ${styles.desktopThemeToggle}`}
+            title="Change language"
+          >
+            <TranslatorIcon />
+          </button>
+          <button
+            onClick={toggleDarkMode}
+            className={`${styles.iconThemeToggle} ${styles.desktopThemeToggle}`}
+            title={darkMode ? 'Light Mode' : 'Dark Mode'}
+          >
+            {darkMode ? <SunIcon /> : <MoonIcon />}
+          </button>
+          <div className={styles.connectWalletButtonWrapper}>
+            <w3m-button />
           </div>
         </div>
 
-        {/* MOBILE */}
+        {/* --- MOBILNE KONTROLKI: tylko ikony i hamburger --- */}
         <div className={styles.mobileHeaderControls}>
           <button
             onClick={handleLanguageChange}
@@ -299,6 +293,7 @@ const Header = () => {
         </div>
       </nav>
 
+      {/* --- Pełne menu mobilne (po kliknięciu hamburger) --- */}
       {isMobileMenuOpen && (
         <div className={`${styles.mobileMenu} ${styles.mobileMenuOpen}`}>
           <div className={styles.mobileMenuContent}>
@@ -323,7 +318,16 @@ const Header = () => {
             >
               Change Language
             </button>
-            <div className={styles.connectWalletMobileWrapper}>
+            <button
+              onClick={() => {
+                router.push('/create-campaign');
+                toggleMobileMenu();
+              }}
+              className={styles.mobileNavLink}
+            >
+              🚀 Create Campaign
+            </button>
+            <div className={styles.mobileConnectWalletWrapper}>
               <w3m-button />
             </div>
           </div>

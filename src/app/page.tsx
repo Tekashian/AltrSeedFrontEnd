@@ -127,7 +127,7 @@ export default function HomePage() {
       {/* Hero banner */}
       <div className="relative w-full h-[50vh]">
         <Image
-          src="/images/BanerAltrSeed.jpg"
+          src="/images/SadzDobro.png"
           alt="Baner AltrSeed"
           fill
           className="object-cover"
