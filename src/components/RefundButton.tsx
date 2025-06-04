@@ -6,7 +6,7 @@ import { useWriteContract } from 'wagmi';
 import { parseUnits } from 'viem';
 import { CROWDFUND_ABI } from '../blockchain/crowdfundAbi';
 
-const CROWDFUND_ADDRESS = '0x768b51618dBb234629B84a224f630E2a23Ee2Bbc';
+const CROWDFUND_ADDRESS = '0x774Ebb8388d01c54E8334B090e3cED93F748e79d';
 
 interface RefundButtonProps {
   campaignId: number;

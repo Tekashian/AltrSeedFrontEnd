@@ -4,7 +4,7 @@ import { USDC_ABI } from './usdcContractAbi'
 
 // Adres Twojego Crowdfund-a
 export const CROWDFUND_CONTRACT_ADDRESS =
-  '0x768b51618dBb234629B84a224f630E2a23Ee2Bbc' as const
+  '0x774Ebb8388d01c54E8334B090e3cED93F748e79d' as const
 
 // Adres kontraktu USDC na Sepolii
 export const USDC_CONTRACT_ADDRESS =

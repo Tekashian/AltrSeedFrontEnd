@@ -2,7 +2,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAccount, useWriteContract, usePublicClient } from 'wagmi';
 import { parseUnits } from 'viem';
@@ -17,20 +16,20 @@ export default function CreateCampaignPage() {
   const { writeContractAsync } = useWriteContract();
   const publicClient = usePublicClient();
 
-  // form state
+  // Stan formularza
   const [campaignType, setCampaignType] = useState<'startup' | 'charity'>('charity');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [targetAmount, setTargetAmount] = useState('');
   const [acceptedToken, setAcceptedToken] = useState(USDC_ADDRESS);
-  const [endTime, setEndTime] = useState('');
+  const [endTime, setEndTime] = useState('');           // format "YYYY-MM-DDThh:mm"
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState('');
+  const [imagePreview, setImagePreview] = useState(''); // Data URL dla podglądu
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
 
-  // preview obrazka
+  // Podgląd obrazka: tworzymy URL tylko gdy plik został wybrany
   useEffect(() => {
     if (!imageFile) {
       setImagePreview('');
@@ -47,13 +46,13 @@ export default function CreateCampaignPage() {
     e.preventDefault();
     setError(null);
 
-    // 1) walidacja
+    // 1) WALIDACJA: czy wszystkie pola wypełnione?
     if (!title.trim() || !description.trim() || !endTime.trim() || !targetAmount.trim()) {
       setError('Wypełnij wszystkie wymagane pola.');
       return;
     }
 
-    // 2) parsowanie kwoty
+    // 2) PARSOWANIE KWOTY do BigInt (USDC ma 6 miejsc po przecinku)
     let amountBI: bigint;
     try {
       amountBI = parseUnits(targetAmount, 6);
@@ -63,17 +62,20 @@ export default function CreateCampaignPage() {
       return;
     }
 
-    // 3) parsowanie daty
+    // 3) PARSOWANIE DATY zakończenia:
+    //    Dodajemy 5 minut bufora, żeby endTime nie wypadł natychmiast w przeszłość
     let ts: bigint;
     try {
-      const ms = new Date(endTime).getTime();
-      ts = BigInt(Math.floor(ms / 1000));
+      const ms = new Date(endTime).getTime();            // Pobierz w milisekundach
+      const bufferedMs = ms + 5 * 60 * 1000;             // Dodaj 5 minut (300 000 ms)
+      ts = BigInt(Math.floor(bufferedMs / 1000));        // Zamień na sekundy
       if (ts <= BigInt(Math.floor(Date.now() / 1000))) throw new Error();
     } catch {
-      setError('Data zakończenia musi być w przyszłości.');
+      setError('Data zakończenia musi być w przyszłości (dodaj co najmniej 5 minut marginesu).');
       return;
     }
 
+    // 4) Czy portfel podłączony?
     if (!address) {
       setError('Podłącz portfel, aby utworzyć kampanię.');
       return;
@@ -83,7 +85,9 @@ export default function CreateCampaignPage() {
     setTxHash(null);
 
     try {
-      // 4) upload obrazka (opcjonalnie)
+      // -----------------------------------------
+      // A) Upload obrazka (opcjonalnie)
+      // -----------------------------------------
       let rawImageCID: any = '';
       if (imageFile) {
         const form = new FormData();
@@ -95,18 +99,22 @@ export default function CreateCampaignPage() {
         console.log('🔍 rawImageCID from /api/upload:', rawImageCID);
       }
 
-      // 5) wydobycie CID jako string
+      // -----------------------------------------
+      // B) Wydobycie CID jako string
+      // -----------------------------------------
       const cidString =
         typeof rawImageCID === 'object' && rawImageCID['/']
           ? rawImageCID['/']
           : String(rawImageCID);
       console.log('🔍 resolved cidString:', cidString);
 
-      // 6) przygotowanie i upload metadanych
+      // -----------------------------------------
+      // C) Przygotowanie i upload metadanych JSON
+      // -----------------------------------------
       const metadata = {
         title: title.trim(),
         description: description.trim(),
-        // tutaj zmieniliśmy protokół na HTTP gateway IPFS:
+        // jeżeli jest obrazek, to umieśćmy link do IPFS
         image: cidString ? `https://ipfs.io/ipfs/${cidString}` : '',
       };
       console.log('🔍 metadata object:', metadata);
@@ -122,7 +130,9 @@ export default function CreateCampaignPage() {
         typeof md.cid === 'object' && md.cid['/'] ? md.cid['/'] : String(md.cid);
       console.log('🔍 metadataCID from /api/upload:', metadataCID);
 
-      // 7) wywołanie createCampaign na kontrakcie
+      // -----------------------------------------
+      // D) Wywołanie createCampaign(...) na kontrakcie z prawidłowym metadataCID
+      // -----------------------------------------
       const args = [
         campaignType === 'startup' ? 0 : 1,
         acceptedToken,
@@ -132,7 +142,7 @@ export default function CreateCampaignPage() {
       ] as const;
       console.log('🔍 createCampaign args:', args);
 
-      // wyślij transakcję i pobierz hash
+      // Wyślij transakcję i pobierz hash
       const hash = await writeContractAsync({
         address: crowdfundContractConfig.address,
         abi: CROWDFUND_ABI,
@@ -142,10 +152,10 @@ export default function CreateCampaignPage() {
       console.log('🔍 transaction hash:', hash);
       setTxHash(hash);
 
-      // poczekaj na potwierdzenie na blockchainie
+      // Czekaj na potwierdzenie na blockchainie
       await publicClient.waitForTransactionReceipt({ hash });
 
-      // 8) przekierowanie po potwierdzeniu
+      // 8) Przekierowanie po potwierdzeniu
       router.push('/');
     } catch (err: any) {
       console.error('❌ handleSubmit error:', err);
@@ -265,6 +275,7 @@ export default function CreateCampaignPage() {
             </div>
 
             {error && <div className="text-red-600">{error}</div>}
+
             {txHash && (
               <p className="text-sm text-[#1F4E79]">
                 TX:{' '}
@@ -301,7 +312,7 @@ export default function CreateCampaignPage() {
           </form>
         </div>
 
-        {/* Podgląd */}
+        {/* Podgląd karty */}
         <div className="w-full lg:w-1/2 bg-white rounded-lg p-6 shadow-xl border border-gray-200">
           <h2 className="text-2xl font-semibold mb-4 text-center">
             Podgląd karty

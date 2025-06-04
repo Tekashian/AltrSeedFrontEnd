@@ -15,7 +15,7 @@ interface DonateButtonProps {
 }
 
 const USDC_ADDRESS = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238';
-const CROWDFUND_ADDRESS = '0x768b51618dBb234629B84a224f630E2a23Ee2Bbc';
+const CROWDFUND_ADDRESS = '0x774Ebb8388d01c54E8334B090e3cED93F748e79d';
 
 const DonateButton: React.FC<DonateButtonProps> = ({
   campaignId,
