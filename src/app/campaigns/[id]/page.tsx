@@ -3,8 +3,9 @@
 
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
+import { useAccount } from 'wagmi'
 import { useReadContract } from 'wagmi'
-import { sepolia } from '@reown/appkit/networks'
+import { sepolia } from 'wagmi/chains'
 import { crowdfundContractConfig } from '../../../blockchain/contracts'
 import { formatUnits } from 'ethers'
 import { BrowserProvider, Contract } from 'ethers'
@@ -40,17 +41,21 @@ interface DonationLog {
   timestamp: number
 }
 
+interface Update {
+  content: string
+  timestamp: number
+}
+
 const USDC_TOKEN_ADDRESS_SEPOLIA =
   '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
 const IPFS_GATEWAY_PREFIX = 'https://ipfs.io/ipfs/'
-// placeholder dla testowych CID lub braku obrazu
+// Placeholder, gdy brakuje prawdziwego obrazka
 const PLACEHOLDER_IMAGE = '/images/BanerAltrSeed.jpg'
 
-// Formatuje wartość USDC (6 miejsc dziesiętnych) do 2 miejsc po przecinku
 const formatUSDC = (amount: bigint): string => {
-  const asString = formatUnits(amount, 6)   // "123.456789"
-  const asNumber = Number(asString)         // 123.456789
-  return asNumber.toFixed(2)                // "123.46"
+  const asString = formatUnits(amount, 6)
+  const asNumber = Number(asString)
+  return asNumber.toFixed(2)
 }
 
 export default function CampaignDetailPage() {
@@ -58,6 +63,7 @@ export default function CampaignDetailPage() {
   const idParam = params.id
   const idNum = Number(idParam)
 
+  // Pobieramy szczegóły kampanii z kontraktu
   const {
     data,
     isLoading,
@@ -70,6 +76,7 @@ export default function CampaignDetailPage() {
     chainId: sepolia.id,
   })
 
+  const { address: connectedAddress } = useAccount()
   const [metadata, setMetadata] = useState<CampaignMetadata | null>(null)
   const [isLoadingMetadata, setIsLoadingMetadata] = useState(true)
   const [donationInput, setDonationInput] = useState('')
@@ -77,9 +84,11 @@ export default function CampaignDetailPage() {
   const [showSmsSection, setShowSmsSection] = useState(false)
   const [showTaxSection, setShowTaxSection] = useState(false)
   const [uniqueDonorsCount, setUniqueDonorsCount] = useState(0)
+  const [updates, setUpdates] = useState<Update[]>([])
+  const [newUpdateText, setNewUpdateText] = useState<string>('')
+  const [isOwner, setIsOwner] = useState(false)
 
-  // -----------------------------------------------------------------------------------
-  // Fetch metadanych JSON z IPFS
+  // Fetch JSON z IPFS pod dataCID
   useEffect(() => {
     if (!data) return
 
@@ -102,53 +111,57 @@ export default function CampaignDetailPage() {
           image: meta.image,
           location: meta.location,
           disease: meta.disease,
-          cause: meta.cause,
+          cause: meta.cause
         })
       })
       .catch(() => {
-        // Jeśli fetch się nie uda, zostawiamy metadata = null
+        // W razie błędu zostawiamy null
       })
       .finally(() => setIsLoadingMetadata(false))
   }, [data])
-  // -----------------------------------------------------------------------------------
 
-  // -----------------------------------------------------------------------------------
-  // Pobierz logi dotacji (DonationReceived) i wylicz unikalną liczbę darczyńców
+  // Sprawdzamy, czy current wallet jest ownerem kampanii
+  useEffect(() => {
+    if (!data || !connectedAddress) {
+      setIsOwner(false)
+      return
+    }
+    const campaign = data as CampaignDetails
+    if (campaign.creator.toLowerCase() === connectedAddress.toLowerCase()) {
+      setIsOwner(true)
+    } else {
+      setIsOwner(false)
+    }
+  }, [data, connectedAddress])
+
+  // Pobieramy logi Dotacji z kontraktu (DonationReceived)
   useEffect(() => {
     if (!data) return
     if (typeof window === 'undefined') return
 
     const fetchDonationLogs = async () => {
       try {
-        // Użyj BrowserProvider opakowanego w window.ethereum
         const ethersProvider = new BrowserProvider((window as any).ethereum, sepolia.id)
         const cfContract = new Contract(
           crowdfundContractConfig.address,
           crowdfundContractConfig.abi,
           ethersProvider
         )
-
-        // Filtruj logi DonationReceived(campaignId, donor=null)
         const rawLogs = await cfContract.queryFilter(
           cfContract.filters.DonationReceived(idNum, null)
         )
 
-        // Przetwórz logi na tablicę DonationLog
         const parsedLogs: DonationLog[] = rawLogs.map((log: any) => {
           const { donor, amountToCampaign, timestamp } = log.args!
           return {
             donor: donor.toLowerCase(),
             amount: Number(amountToCampaign) / 10 ** 6,
-            timestamp: Number(timestamp) * 1000,
+            timestamp: Number(timestamp) * 1000
           }
         })
-
-        // Posortuj od najnowszych
         parsedLogs.sort((a, b) => b.timestamp - a.timestamp)
-
         setDonations(parsedLogs)
 
-        // Oblicz liczbę unikalnych darczyńców
         const uniqueDonors = new Set(parsedLogs.map((d) => d.donor))
         setUniqueDonorsCount(uniqueDonors.size)
       } catch (err) {
@@ -159,16 +172,20 @@ export default function CampaignDetailPage() {
     fetchDonationLogs()
   }, [data])
 
-  // -----------------------------------------------------------------------------------
+  const handleAddUpdate = () => {
+    const trimmed = newUpdateText.trim()
+    if (trimmed === '') return
+    const now = Date.now()
+    setUpdates((prev) => [{ content: trimmed, timestamp: now }, ...prev])
+    setNewUpdateText('')
+  }
 
   if (isLoading || isLoadingMetadata) {
     return <p>Ładowanie szczegółów kampanii…</p>
   }
-
   if (error) {
     return <p className="text-red-500">Błąd: {error.message}</p>
   }
-
   if (!data) {
     return <p>Nie znaleziono kampanii #{idNum}</p>
   }
@@ -176,8 +193,7 @@ export default function CampaignDetailPage() {
   const campaign = data as CampaignDetails
   const title = metadata?.title || `Kampania #${idNum}`
 
-  // -----------------------------------------------------------------------------------
-  // Przygotowanie URL-a obrazka z IPFS (lub placeholder)
+  // Przygotowanie URL obrazka (IPFS lub placeholder)
   const cid = campaign.dataCID.trim()
   const isTestCid = cid.startsWith('Test')
   let imageUrl: string
@@ -191,66 +207,141 @@ export default function CampaignDetailPage() {
   } else {
     imageUrl = `${IPFS_GATEWAY_PREFIX}${metadata.image}`
   }
-  // -----------------------------------------------------------------------------------
 
   const description = metadata?.description || ''
   const location = metadata?.location
   const disease = metadata?.disease
   const cause = metadata?.cause
 
-  // Procentowy postęp
   const progressPercent =
     campaign.targetAmount > 0n
       ? Number((campaign.raisedAmount * 10000n) / campaign.targetAmount) / 100
       : 0
 
-  // Wyświetlana etykieta tokena
   const displayToken =
     campaign.acceptedToken.toLowerCase() ===
     USDC_TOKEN_ADDRESS_SEPOLIA.toLowerCase()
       ? 'USDC'
       : campaign.acceptedToken.slice(0, 6) + '…'
 
-  // Obliczenia dla panelu: ile zebrano, ile brakuje
   const raised = Number(formatUnits(campaign.raisedAmount, 6))
   const target = Number(formatUnits(campaign.targetAmount, 6))
   const missing = (target - raised).toFixed(2)
 
   return (
     <>
-      <main className="container mx-auto p-6 bg-[#E0F0FF]">
+      {/**
+       * 1) Dodaliśmy -mt-16, aby banner przykrywał ewentualną przerwę pod nagłówkiem.
+       *    Jeśli Twój nagłówek ma inną wysokość, dostosuj 16 -> odpowiednią wartość w Tailwindzie.
+       */}
+      <div className="relative w-full h-[600px] -mt-56">
+        <div className="absolute inset-0 -z-10">
+          <Image
+            src={imageUrl}
+            alt="Tło rozmyte kampanii"
+            fill
+            className="object-cover object-top w-full h-full blur-lg scale-110"
+            priority
+          />
+          <div className="absolute inset-0 bg-black opacity-20" />
+        </div>
+      </div>
+
+      <main className="container mx-auto p-6 -mt-[350px] relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-          {/* ------------------------------------ */}
-          {/* Lewa kolumna: duży obraz + opis kampanii */}
-          <div>
-            <div className="w-full rounded-lg overflow-hidden shadow-lg">
+          {/* LEWA KOLUMNA */}
+          <div className="space-y-6">
+            <div className="w-full relative rounded-lg overflow-hidden shadow-lg h-[600px]">
               <Image
                 src={imageUrl}
                 alt={title}
-                width={800}
-                height={600}
-                className="object-cover w-full h-full"
+                fill
+                className="object-cover object-center w-full h-full"
                 priority
               />
             </div>
-            <p className="mt-4 text-gray-700">{description}</p>
-          </div>
-          {/* ------------------------------------ */}
 
-          {/* ------------------------------------ */}
-          {/* Prawa kolumna: STICKY z top-50, dwie kolumny (podsumowanie + historia) */}
-          <div className="sticky top-50 z-10 flex flex-row space-x-4 px-2">
-            {/* ---------------- */}
-            {/* Panel 1: tytuł, podsumowanie, input i przycisk */}
+            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-200 bg-white">
+                <h2 className="text-2xl font-bold text-[#1F4E79]">
+                  Aktualności
+                </h2>
+                <p className="mt-1 text-sm text-gray-600">
+                  Tu zobaczysz najnowsze informacje o tej zbiórce.
+                </p>
+              </div>
+              <div className="px-6 py-4 max-h-[300px] overflow-auto space-y-4">
+                {updates.length === 0 && (
+                  <p className="text-sm text-gray-500">
+                    Brak aktualności do wyświetlenia.
+                  </p>
+                )}
+                {updates.map((u, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-gray-50 rounded-md p-4 border border-gray-200"
+                  >
+                    <p className="text-sm text-gray-700">{u.content}</p>
+                    <p className="mt-2 text-xs text-gray-500">
+                      {new Date(u.timestamp).toLocaleString('pl-PL')}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              {isOwner && (
+                <div className="border-t border-gray-200 bg-white px-6 py-4 space-y-2">
+                  <textarea
+                    rows={3}
+                    placeholder="Napisz nową aktualność..."
+                    value={newUpdateText}
+                    onChange={(e) => setNewUpdateText(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1F4E79]"
+                  />
+                  <button
+                    onClick={handleAddUpdate}
+                    className="w-full py-2 text-lg font-semibold text-white bg-[#68CC89] hover:bg-[#5FBF7A] rounded-lg transition"
+                  >
+                    Wyślij aktualność
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-200 bg-white">
+                <h2 className="text-2xl font-bold text-[#1F4E79]">
+                  Opis zbiórki
+                </h2>
+              </div>
+              <div className="px-6 py-4">
+                <p className="text-gray-700">{description}</p>
+                {location && (
+                  <p className="mt-2 text-sm text-gray-600">
+                    <strong>Lokalizacja:</strong> {location}
+                  </p>
+                )}
+                {disease && (
+                  <p className="mt-1 text-sm text-gray-600">
+                    <strong>Choroba:</strong> {disease}
+                  </p>
+                )}
+                {cause && (
+                  <p className="mt-1 text-sm text-gray-600">
+                    <strong>Cel:</strong> {cause}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* PRAWA KOLUMNA */}
+          <div className="sticky top-[175px] z-10 flex flex-row space-x-4 px-2">
             <div className="flex-1 bg-white rounded-lg shadow-md overflow-hidden">
-              {/* Tytuł kampanii */}
               <div className="px-6 py-4 bg-white">
                 <h1 className="text-2xl font-bold text-[#1F4E79] leading-snug">
                   {title}
                 </h1>
               </div>
-
-              {/* Górna część panelu – zebrano / brakująca kwota */}
               <div className="px-6 pb-4">
                 <p className="text-xl font-semibold text-green-600">
                   {raised.toLocaleString('pl-PL')} {displayToken}{' '}
@@ -268,8 +359,6 @@ export default function CampaignDetailPage() {
                   Brakuje {missing} {displayToken}
                 </p>
               </div>
-
-              {/* Pole na wpisanie kwoty dotacji */}
               <div className="px-6 mb-4">
                 <input
                   type="number"
@@ -278,11 +367,9 @@ export default function CampaignDetailPage() {
                   placeholder="Kwota w USDC"
                   value={donationInput}
                   onChange={(e) => setDonationInput(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1F4E79]"
                 />
               </div>
-
-              {/* Duży przycisk "Wesprzyj" */}
               <div className="px-6 py-4">
                 <DonateButton
                   campaignId={idNum}
@@ -295,8 +382,6 @@ export default function CampaignDetailPage() {
                   Wsparło {uniqueDonorsCount.toLocaleString('pl-PL')} osób
                 </p>
               </div>
-
-              {/* Ikony podziału: Załóż skarbonkę / Promuj / Udostępnij */}
               <div className="px-6 py-3 flex justify-between border-t border-gray-200 bg-white">
                 <button className="flex flex-col items-center text-blue-500 hover:text-blue-700 transition">
                   <span className="text-2xl mb-1">🐷</span>
@@ -311,8 +396,6 @@ export default function CampaignDetailPage() {
                   <span className="text-xs">Udostępnij</span>
                 </button>
               </div>
-
-              {/* Sekcja: "Wpłać, wysyłając SMS" */}
               <div className="border-t border-gray-200 bg-white">
                 <button
                   onClick={() => setShowSmsSection((prev) => !prev)}
@@ -331,39 +414,35 @@ export default function CampaignDetailPage() {
                   </div>
                 )}
               </div>
-
-              {/* Sekcja: "Przekaż mi 1,5% podatku" */}
               <div className="border-t border-gray-200 bg-white">
                 <button
                   onClick={() => setShowTaxSection((prev) => !prev)}
                   className="w-full px-6 py-3 flex justify-between items-center text-gray-700 hover:bg-gray-50 transition"
                 >
-                  <span className="text-sm">Przekaż mi 1,5% podatku</span>
+                  <span className="text-sm">Przekaż mi 1,5 % podatku</span>
                   <span className="text-lg">{showTaxSection ? '−' : '+'}</span>
                 </button>
                 {showTaxSection && (
                   <div className="px-6 pb-4 pt-2 text-gray-600 text-sm space-y-1">
                     <p>
-                      <strong>Numer KRS:</strong> <span className="text-red-600">0000396361</span>
+                      <strong>Numer KRS:</strong>{' '}
+                      <span className="text-red-600">0000396361</span>
                     </p>
                     <p>
-                      <strong>Cel szczegółowy 1,5%:</strong>{' '}
+                      <strong>Cel szczegółowy 1,5 %:</strong>{' '}
                       <span className="text-red-600">0768440 Adam</span>
                     </p>
-                    <p className="underline text-blue-500 hover:text-blue-700 transition cursor-pointer">
-                      Sprawdź, jak przekazać 1,5% podatku →
+                    <p className="underline text‐blue‐500 hover:text‐blue‐700 transition cursor-pointer">
+                      Sprawdź, jak przekazać 1,5 % podatku →
                     </p>
-                    <p className="underline text-blue-500 hover:text-blue-700 transition cursor-pointer">
-                      Ustaw przypomnienie o przekazaniu 1,5% →
+                    <p className="underline text‐blue‐500 hover:text‐blue‐700 transition cursor-pointer">
+                      Ustaw przypomnienie o przekazaniu 1,5 % →
                     </p>
                   </div>
                 )}
               </div>
             </div>
-            {/* ---------------- */}
 
-            {/* ---------------- */}
-            {/* Panel 2: Historia wspierających */}
             <div className="flex-1 bg-white rounded-lg shadow-md overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-200">
                 <h2 className="text-lg font-semibold text-[#1F4E79]">
@@ -393,9 +472,7 @@ export default function CampaignDetailPage() {
                 </ul>
               )}
             </div>
-            {/* ---------------- */}
           </div>
-          {/* ------------------------------------ */}
         </div>
       </main>
 
