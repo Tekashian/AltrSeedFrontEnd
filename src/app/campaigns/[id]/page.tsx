@@ -41,9 +41,9 @@ const PLACEHOLDER_IMAGE = '/images/BanerAltrSeed.jpg'
 
 // Formatuje wartość USDC (6 miejsc dziesiętnych) do 2 miejsc po przecinku
 const formatUSDC = (amount: bigint): string => {
-  const asString = formatUnits(amount, 6)       // "123.456789"
-  const asNumber = Number(asString)             // 123.456789
-  return asNumber.toFixed(2)                    // "123.46"
+  const asString = formatUnits(amount, 6)   // "123.456789"
+  const asNumber = Number(asString)         // 123.456789
+  return asNumber.toFixed(2)                // "123.46"
 }
 
 export default function CampaignDetailPage() {
@@ -63,7 +63,8 @@ export default function CampaignDetailPage() {
   const [isLoadingMetadata, setIsLoadingMetadata] = useState(true)
   const [donationInput, setDonationInput] = useState('')
 
-  // Pobierz metadane JSON z IPFS
+  // -----------------------------------------------------------------------------------
+  // Fetch metadanych JSON z IPFS
   useEffect(() => {
     if (!data) return
 
@@ -75,7 +76,7 @@ export default function CampaignDetailPage() {
     }
 
     fetch(`${IPFS_GATEWAY_PREFIX}${cid}`)
-      .then(res => {
+      .then((res) => {
         if (!res.ok) throw new Error(`IPFS error ${res.status}`)
         return res.json()
       })
@@ -90,10 +91,11 @@ export default function CampaignDetailPage() {
         })
       })
       .catch(() => {
-        // Jeśli fetch się nie uda, zostawiamy null
+        // Jeśli fetch się nie uda, zostawiamy metadata = null
       })
       .finally(() => setIsLoadingMetadata(false))
   }, [data])
+  // -----------------------------------------------------------------------------------
 
   if (isLoading || isLoadingMetadata) {
     return <p>Ładowanie szczegółów kampanii…</p>
@@ -108,10 +110,10 @@ export default function CampaignDetailPage() {
   }
 
   const campaign = data as CampaignDetails
-
   const title = metadata?.title || `Kampania #${idNum}`
 
-  // --- logika IPFS image (jak w CampaignCard.tsx) ---
+  // -----------------------------------------------------------------------------------
+  // Przygotowanie URL-a obrazka z IPFS (lub placeholder)
   const cid = campaign.dataCID.trim()
   const isTestCid = cid.startsWith('Test')
   let imageUrl: string
@@ -125,7 +127,7 @@ export default function CampaignDetailPage() {
   } else {
     imageUrl = `${IPFS_GATEWAY_PREFIX}${metadata.image}`
   }
-  // -------------------------------------------------------
+  // -----------------------------------------------------------------------------------
 
   const description = metadata?.description || ''
   const location = metadata?.location
@@ -138,7 +140,7 @@ export default function CampaignDetailPage() {
       ? Number((campaign.raisedAmount * 10000n) / campaign.targetAmount) / 100
       : 0
 
-  // token display
+  // Wyświetlana etykieta tokena
   const displayToken =
     campaign.acceptedToken.toLowerCase() ===
     USDC_TOKEN_ADDRESS_SEPOLIA.toLowerCase()
@@ -149,7 +151,8 @@ export default function CampaignDetailPage() {
     <>
       <main className="container mx-auto p-6 bg-[#E0F0FF]">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-          {/* Lewa kolumna: obraz + opis */}
+          {/* ------------------------------------ */}
+          {/* Lewa kolumna: duży obraz + opis kampanii */}
           <div>
             <div className="w-full rounded-lg overflow-hidden shadow-lg">
               <Image
@@ -163,21 +166,28 @@ export default function CampaignDetailPage() {
             </div>
             <p className="mt-4 text-gray-700">{description}</p>
           </div>
+          {/* ------------------------------------ */}
 
-          {/* Prawa kolumna: szczegóły i Donate */}
-          <div className="flex flex-col">
-            <h1 className="text-4xl font-bold text-[#1F4E79] mb-4">{title}</h1>
+          {/* ------------------------------------ */}
+          {/* Prawa kolumna: STICKY, z top-20, bg i z-index, żeby nie chowała się pod header */}
+          <div className="flex flex-col sticky top-50 z-10 bg-[#E0F0FF] pt-2 pb-4">
+            {/* Tytuł kampanii */}
+            <h1 className="text-4xl font-bold text-[#1F4E79] px-4 mb-4">
+              {title}
+            </h1>
 
             {/* Pasek postępu */}
-            <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
-              <div
-                className="h-4 rounded-full bg-[#00ADEF] transition-all"
-                style={{ width: `${progressPercent}%` }}
-              />
+            <div className="px-4 pb-2">
+              <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
+                <div
+                  className="h-4 rounded-full bg-[#00ADEF] transition-all"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
             </div>
 
             {/* Kwoty w USDC */}
-            <p className="text-2xl font-semibold text-[#1F4E79] mb-6">
+            <p className="text-2xl font-semibold text-[#1F4E79] mb-4 px-4">
               {formatUSDC(campaign.raisedAmount)} {displayToken}
               {' / '}
               {formatUSDC(campaign.targetAmount)} {displayToken}
@@ -185,36 +195,40 @@ export default function CampaignDetailPage() {
             </p>
 
             {/* Pole na wpisanie kwoty */}
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="Kwota w USDC"
-              value={donationInput}
-              onChange={e => setDonationInput(e.target.value)}
-              className="w-full px-4 py-3 mb-4 border border-gray-300 rounded-lg text-gray-900"
-            />
+            <div className="px-4 mb-4">
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="Kwota w USDC"
+                value={donationInput}
+                onChange={(e) => setDonationInput(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900"
+              />
+            </div>
 
             {/* Przycisk Support (Donate) */}
-            <DonateButton
-              campaignId={idNum}
-              donationAmount={donationInput}
-              className="w-full py-4 mb-8 text-lg font-semibold text-white bg-[#68CC89] hover:bg-[#5fbf7a] rounded-lg transition"
-            >
-              Support
-            </DonateButton>
+            <div className="px-4 mb-8">
+              <DonateButton
+                campaignId={idNum}
+                donationAmount={donationInput}
+                className="w-full py-4 text-lg font-semibold text-white bg-[#68CC89] hover:bg-[#5fbf7a] rounded-lg transition"
+              >
+                Support
+              </DonateButton>
+            </div>
 
             {/* Dodatkowe dane kampanii */}
-            <div className="border-t border-gray-300 pt-6 space-y-4 text-[#1F4E79]">
+            <div className="border-t border-gray-300 pt-6 space-y-4 text-[#1F4E79] px-4">
               <p>
                 <strong>Rozpoczęcie:</strong>{' '}
-                {new Date(Number(campaign.creationTimestamp) * 1000)
-                  .toLocaleDateString('pl-PL')}
+                {new Date(Number(campaign.creationTimestamp) * 1000).toLocaleDateString(
+                  'pl-PL'
+                )}
               </p>
               <p>
                 <strong>Zakończenie:</strong>{' '}
-                {new Date(Number(campaign.endTime) * 1000)
-                  .toLocaleDateString('pl-PL')}
+                {new Date(Number(campaign.endTime) * 1000).toLocaleDateString('pl-PL')}
               </p>
               {location && (
                 <p>
@@ -233,6 +247,7 @@ export default function CampaignDetailPage() {
               )}
             </div>
           </div>
+          {/* ------------------------------------ */}
         </div>
       </main>
 
