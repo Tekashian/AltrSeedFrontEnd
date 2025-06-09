@@ -39,6 +39,7 @@ interface DonationLog {
   donor: string
   amount: number
   timestamp: number
+  txHash: string
 }
 
 interface Update {
@@ -49,7 +50,6 @@ interface Update {
 const USDC_TOKEN_ADDRESS_SEPOLIA =
   '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
 const IPFS_GATEWAY_PREFIX = 'https://ipfs.io/ipfs/'
-// Placeholder, gdy brakuje prawdziwego obrazka
 const PLACEHOLDER_IMAGE = '/images/BanerAltrSeed.jpg'
 
 const formatUSDC = (amount: bigint): string => {
@@ -63,7 +63,6 @@ export default function CampaignDetailPage() {
   const idParam = params.id
   const idNum = Number(idParam)
 
-  // Pobieramy szczegóły kampanii z kontraktu
   const {
     data,
     isLoading,
@@ -88,7 +87,7 @@ export default function CampaignDetailPage() {
   const [newUpdateText, setNewUpdateText] = useState<string>('')
   const [isOwner, setIsOwner] = useState(false)
 
-  // Fetch JSON z IPFS pod dataCID
+  // Fetch metadata from IPFS
   useEffect(() => {
     if (!data) return
 
@@ -115,33 +114,32 @@ export default function CampaignDetailPage() {
         })
       })
       .catch(() => {
-        // W razie błędu zostawiamy null
+        // leave null on error
       })
       .finally(() => setIsLoadingMetadata(false))
   }, [data])
 
-  // Sprawdzamy, czy current wallet jest ownerem kampanii
+  // Check ownership
   useEffect(() => {
     if (!data || !connectedAddress) {
       setIsOwner(false)
       return
     }
     const campaign = data as CampaignDetails
-    if (campaign.creator.toLowerCase() === connectedAddress.toLowerCase()) {
-      setIsOwner(true)
-    } else {
-      setIsOwner(false)
-    }
+    setIsOwner(campaign.creator.toLowerCase() === connectedAddress.toLowerCase())
   }, [data, connectedAddress])
 
-  // Pobieramy logi Dotacji z kontraktu (DonationReceived)
+  // Fetch donation logs
   useEffect(() => {
     if (!data) return
     if (typeof window === 'undefined') return
 
     const fetchDonationLogs = async () => {
       try {
-        const ethersProvider = new BrowserProvider((window as any).ethereum, sepolia.id)
+        const ethersProvider = new BrowserProvider(
+          (window as any).ethereum,
+          sepolia.id
+        )
         const cfContract = new Contract(
           crowdfundContractConfig.address,
           crowdfundContractConfig.abi,
@@ -150,22 +148,20 @@ export default function CampaignDetailPage() {
         const rawLogs = await cfContract.queryFilter(
           cfContract.filters.DonationReceived(idNum, null)
         )
-
-        const parsedLogs: DonationLog[] = rawLogs.map((log: any) => {
+        const parsed: DonationLog[] = rawLogs.map((log: any) => {
           const { donor, amountToCampaign, timestamp } = log.args!
           return {
             donor: donor.toLowerCase(),
             amount: Number(amountToCampaign) / 10 ** 6,
-            timestamp: Number(timestamp) * 1000
+            timestamp: Number(timestamp) * 1000,
+            txHash: log.transactionHash
           }
         })
-        parsedLogs.sort((a, b) => b.timestamp - a.timestamp)
-        setDonations(parsedLogs)
-
-        const uniqueDonors = new Set(parsedLogs.map((d) => d.donor))
-        setUniqueDonorsCount(uniqueDonors.size)
+        parsed.sort((a, b) => b.timestamp - a.timestamp)
+        setDonations(parsed)
+        setUniqueDonorsCount(new Set(parsed.map(d => d.donor)).size)
       } catch (err) {
-        console.error('Błąd pobierania logów dotacji:', err)
+        console.error('Error fetching donation logs:', err)
       }
     }
 
@@ -174,9 +170,8 @@ export default function CampaignDetailPage() {
 
   const handleAddUpdate = () => {
     const trimmed = newUpdateText.trim()
-    if (trimmed === '') return
-    const now = Date.now()
-    setUpdates((prev) => [{ content: trimmed, timestamp: now }, ...prev])
+    if (!trimmed) return
+    setUpdates(prev => [{ content: trimmed, timestamp: Date.now() }, ...prev])
     setNewUpdateText('')
   }
 
@@ -193,15 +188,13 @@ export default function CampaignDetailPage() {
   const campaign = data as CampaignDetails
   const title = metadata?.title || `Kampania #${idNum}`
 
-  // Przygotowanie URL obrazka (IPFS lub placeholder)
   const cid = campaign.dataCID.trim()
   const isTestCid = cid.startsWith('Test')
   let imageUrl: string
   if (!metadata?.image || isTestCid) {
     imageUrl = PLACEHOLDER_IMAGE
   } else if (metadata.image.startsWith('ipfs://')) {
-    const raw = metadata.image.replace('ipfs://', '')
-    imageUrl = `${IPFS_GATEWAY_PREFIX}${raw}`
+    imageUrl = `${IPFS_GATEWAY_PREFIX}${metadata.image.slice(7)}`
   } else if (metadata.image.startsWith('http')) {
     imageUrl = metadata.image
   } else {
@@ -213,27 +206,21 @@ export default function CampaignDetailPage() {
   const disease = metadata?.disease
   const cause = metadata?.cause
 
+  const raised = Number(formatUnits(campaign.raisedAmount, 6))
+  const target = Number(formatUnits(campaign.targetAmount, 6))
+  const missing = (target - raised).toFixed(2)
   const progressPercent =
     campaign.targetAmount > 0n
       ? Number((campaign.raisedAmount * 10000n) / campaign.targetAmount) / 100
       : 0
-
   const displayToken =
     campaign.acceptedToken.toLowerCase() ===
     USDC_TOKEN_ADDRESS_SEPOLIA.toLowerCase()
       ? 'USDC'
       : campaign.acceptedToken.slice(0, 6) + '…'
 
-  const raised = Number(formatUnits(campaign.raisedAmount, 6))
-  const target = Number(formatUnits(campaign.targetAmount, 6))
-  const missing = (target - raised).toFixed(2)
-
   return (
     <>
-      {/**
-       * 1) Dodaliśmy -mt-16, aby banner przykrywał ewentualną przerwę pod nagłówkiem.
-       *    Jeśli Twój nagłówek ma inną wysokość, dostosuj 16 -> odpowiednią wartość w Tailwindzie.
-       */}
       <div className="relative w-full h-[600px] -mt-56">
         <div className="absolute inset-0 -z-10">
           <Image
@@ -248,10 +235,13 @@ export default function CampaignDetailPage() {
       </div>
 
       <main className="container mx-auto p-6 -mt-[350px] relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-          {/* LEWA KOLUMNA */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+
+          {/* LEWA KOLUMNA - mobile/tablet */}
           <div className="space-y-6">
-            <div className="w-full relative rounded-lg overflow-hidden shadow-lg h-[600px]">
+
+            {/* Obraz kampanii */}
+            <div className="w-full relative rounded-md overflow-hidden shadow-sm h-[600px]">
               <Image
                 src={imageUrl}
                 alt={title}
@@ -261,101 +251,27 @@ export default function CampaignDetailPage() {
               />
             </div>
 
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200 bg-white">
-                <h2 className="text-2xl font-bold text-[#1F4E79]">
-                  Aktualności
-                </h2>
-                <p className="mt-1 text-sm text-gray-600">
-                  Tu zobaczysz najnowsze informacje o tej zbiórce.
-                </p>
-              </div>
-              <div className="px-6 py-4 max-h-[300px] overflow-auto space-y-4">
-                {updates.length === 0 && (
-                  <p className="text-sm text-gray-500">
-                    Brak aktualności do wyświetlenia.
-                  </p>
-                )}
-                {updates.map((u, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-gray-50 rounded-md p-4 border border-gray-200"
-                  >
-                    <p className="text-sm text-gray-700">{u.content}</p>
-                    <p className="mt-2 text-xs text-gray-500">
-                      {new Date(u.timestamp).toLocaleString('pl-PL')}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              {isOwner && (
-                <div className="border-t border-gray-200 bg-white px-6 py-4 space-y-2">
-                  <textarea
-                    rows={3}
-                    placeholder="Napisz nową aktualność..."
-                    value={newUpdateText}
-                    onChange={(e) => setNewUpdateText(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1F4E79]"
-                  />
-                  <button
-                    onClick={handleAddUpdate}
-                    className="w-full py-2 text-lg font-semibold text-white bg-[#68CC89] hover:bg-[#5FBF7A] rounded-lg transition"
-                  >
-                    Wyślij aktualność
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200 bg-white">
-                <h2 className="text-2xl font-bold text-[#1F4E79]">
-                  Opis zbiórki
-                </h2>
-              </div>
+            {/* Panel wpłaty - mobile only */}
+            <div className="lg:hidden bg-white rounded-md shadow-sm overflow-hidden">
               <div className="px-6 py-4">
-                <p className="text-gray-700">{description}</p>
-                {location && (
-                  <p className="mt-2 text-sm text-gray-600">
-                    <strong>Lokalizacja:</strong> {location}
-                  </p>
-                )}
-                {disease && (
-                  <p className="mt-1 text-sm text-gray-600">
-                    <strong>Choroba:</strong> {disease}
-                  </p>
-                )}
-                {cause && (
-                  <p className="mt-1 text-sm text-gray-600">
-                    <strong>Cel:</strong> {cause}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* PRAWA KOLUMNA */}
-          <div className="sticky top-[175px] z-10 flex flex-row space-x-4 px-2">
-            <div className="flex-1 bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="px-6 py-4 bg-white">
-                <h1 className="text-2xl font-bold text-[#1F4E79] leading-snug">
+                <h1 className="text-2xl font-semibold text-[#1F4E79]">
                   {title}
                 </h1>
               </div>
               <div className="px-6 pb-4">
-                <p className="text-xl font-semibold text-green-600">
+                <p className="text-lg font-medium text-green-600">
                   {raised.toLocaleString('pl-PL')} {displayToken}{' '}
-                  <span className="text-lg font-normal text-gray-500">
+                  <span className="text-base font-normal text-gray-500">
                     ({progressPercent.toFixed(2)}%)
                   </span>
                 </p>
-                <div className="mt-2 w-full bg-gray-200 rounded-full h-3">
+                <div className="mt-2 w-full bg-gray-100 rounded-full h-2">
                   <div
-                    className="h-3 rounded-full bg-green-600 transition-all"
+                    className="h-2 rounded-full bg-green-600 transition-width"
                     style={{ width: `${progressPercent}%` }}
                   />
                 </div>
-                <p className="mt-2 text-sm text-gray-600">
+                <p className="mt-2 text-xs text-gray-500">
                   Brakuje {missing} {displayToken}
                 </p>
               </div>
@@ -366,113 +282,281 @@ export default function CampaignDetailPage() {
                   step="0.01"
                   placeholder="Kwota w USDC"
                   value={donationInput}
-                  onChange={(e) => setDonationInput(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1F4E79]"
+                  onChange={e => setDonationInput(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-100 rounded-md text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#1F4E79]"
                 />
               </div>
               <div className="px-6 py-4">
                 <DonateButton
                   campaignId={idNum}
                   donationAmount={donationInput}
-                  className="w-full py-3 text-lg font-semibold text-white bg-[#68CC89] hover:bg-[#5FBF7A] rounded-lg transition"
+                  className="w-full py-2 text-base font-medium text-white bg-[#68CC89] hover:bg-[#5FBF7A] rounded-md"
                 >
                   Wesprzyj
                 </DonateButton>
-                <p className="mt-2 text-center text-sm text-gray-500">
+                <p className="mt-2 text-center text-xs text-gray-500">
                   Wsparło {uniqueDonorsCount.toLocaleString('pl-PL')} osób
                 </p>
               </div>
-              <div className="px-6 py-3 flex justify-between border-t border-gray-200 bg-white">
-                <button className="flex flex-col items-center text-blue-500 hover:text-blue-700 transition">
-                  <span className="text-2xl mb-1">🐷</span>
-                  <span className="text-xs">Załóż skarbonkę</span>
+              <div className="px-6 py-3 flex justify-between border-t border-gray-100">
+                <button className="flex flex-col items-center text-blue-500 hover:text-blue-700">
+                  <span className="text-xl mb-1">🐷</span>
+                  <span className="text-xs">Skarbonka</span>
                 </button>
-                <button className="flex flex-col items-center text-blue-500 hover:text-blue-700 transition">
-                  <span className="text-2xl mb-1">📣</span>
+                <button className="flex flex-col items-center text-blue-500 hover:text-blue-700">
+                  <span className="text-xl mb-1">📣</span>
                   <span className="text-xs">Promuj</span>
                 </button>
-                <button className="flex flex-col items-center text-blue-500 hover:text-blue-700 transition">
-                  <span className="text-2xl mb-1">📤</span>
+                <button className="flex flex-col items-center text-blue-500 hover:text-blue-700">
+                  <span className="text-xl mb-1">📤</span>
                   <span className="text-xs">Udostępnij</span>
                 </button>
               </div>
-              <div className="border-t border-gray-200 bg-white">
+              <div className="border-t border-gray-100">
                 <button
-                  onClick={() => setShowSmsSection((prev) => !prev)}
-                  className="w-full px-6 py-3 flex justify-between items-center text-gray-700 hover:bg-gray-50 transition"
+                  onClick={() => setShowSmsSection(prev => !prev)}
+                  className="w-full px-6 py-2 flex justify-between items-center text-sm text-gray-700 hover:bg-gray-50"
                 >
-                  <span className="text-sm">Wpłać, wysyłając SMS</span>
-                  <span className="text-lg">{showSmsSection ? '−' : '+'}</span>
+                  <span>SMS</span>
+                  <span>{showSmsSection ? '−' : '+'}</span>
                 </button>
                 {showSmsSection && (
-                  <div className="px-6 pb-4 pt-2 text-gray-600 text-sm">
-                    <p>
-                      Wyślij SMS o treści <strong>WPOMOC</strong> na numer{' '}
-                      <strong>7545</strong>, aby przekazać 5 zł.
-                    </p>
-                    <p className="mt-1">Koszt SMS-a: 5 zł + VAT.</p>
+                  <div className="px-6 py-2 text-xs text-gray-500">
+                    Wyślij SMS "WPOMOC" na 7545 (5 zł + VAT).
                   </div>
                 )}
               </div>
-              <div className="border-t border-gray-200 bg-white">
+              <div className="border-t border-gray-100">
                 <button
-                  onClick={() => setShowTaxSection((prev) => !prev)}
-                  className="w-full px-6 py-3 flex justify-between items-center text-gray-700 hover:bg-gray-50 transition"
+                  onClick={() => setShowTaxSection(prev => !prev)}
+                  className="w-full px-6 py-2 flex justify-between items-center text-sm text-gray-700 hover:bg-gray-50"
                 >
-                  <span className="text-sm">Przekaż mi 1,5 % podatku</span>
-                  <span className="text-lg">{showTaxSection ? '−' : '+'}</span>
+                  <span>1,5 % podatku</span>
+                  <span>{showTaxSection ? '−' : '+'}</span>
                 </button>
                 {showTaxSection && (
-                  <div className="px-6 pb-4 pt-2 text-gray-600 text-sm space-y-1">
-                    <p>
-                      <strong>Numer KRS:</strong>{' '}
-                      <span className="text-red-600">0000396361</span>
-                    </p>
-                    <p>
-                      <strong>Cel szczegółowy 1,5 %:</strong>{' '}
-                      <span className="text-red-600">0768440 Adam</span>
-                    </p>
-                    <p className="underline text‐blue‐500 hover:text‐blue‐700 transition cursor-pointer">
-                      Sprawdź, jak przekazać 1,5 % podatku →
-                    </p>
-                    <p className="underline text‐blue‐500 hover:text‐blue‐700 transition cursor-pointer">
-                      Ustaw przypomnienie o przekazaniu 1,5 % →
-                    </p>
+                  <div className="px-6 py-2 text-xs text-gray-500 space-y-1">
+                    <p>KRS 0000396361</p>
+                    <p>Cel: 0768440 Adam</p>
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="flex-1 bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200">
+            {/* Aktualności */}
+            <div className="bg-white rounded-md shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100">
+                <h2 className="text-2xl font-semibold text-[#1F4E79]">
+                  Aktualności
+                </h2>
+                <p className="mt-1 text-xs text-gray-500">
+                  Najnowsze informacje
+                </p>
+              </div>
+              <div className="px-6 py-4 max-h-[300px] overflow-auto space-y-4">
+                {updates.length === 0 && (
+                  <p className="text-xs text-gray-400">
+                    Brak aktualności.
+                  </p>
+                )}
+                {updates.map((u, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-gray-50 rounded-md p-3 border border-gray-100"
+                  >
+                    <p className="text-xs text-gray-700">{u.content}</p>
+                    <p className="mt-1 text-[10px] text-gray-400">
+                      {new Date(u.timestamp).toLocaleString('pl-PL')}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              {isOwner && (
+                <div className="border-t border-gray-100 px-6 py-4 space-y-2">
+                  <textarea
+                    rows={3}
+                    placeholder="Nowa aktualność..."
+                    value={newUpdateText}
+                    onChange={e => setNewUpdateText(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-100 rounded-md focus:outline-none focus:ring-1 focus:ring-[#1F4E79]"
+                  />
+                  <button
+                    onClick={handleAddUpdate}
+                    className="w-full py-2 text-base font-medium text-white bg-[#68CC89] hover:bg-[#5FBF7A] rounded-md"
+                  >
+                    Dodaj
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Opis zbiórki */}
+            <div className="bg-white rounded-md shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100">
+                <h2 className="text-2xl font-semibold text-[#1F4E79]">
+                  Opis zbiórki
+                </h2>
+              </div>
+              <div className="px-6 py-4">
+                <p className="text-sm text-gray-700">{description}</p>
+                {location && (
+                  <p className="mt-2 text-xs text-gray-500">
+                    Lokalizacja: {location}
+                  </p>
+                )}
+                {disease && (
+                  <p className="mt-1 text-xs text-gray-500">
+                    Choroba: {disease}
+                  </p>
+                )}
+                {cause && (
+                  <p className="mt-1 text-xs text-gray-500">
+                    Cel: {cause}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Historia wpłat */}
+            <div className="bg-white rounded-md shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100">
                 <h2 className="text-lg font-semibold text-[#1F4E79]">
                   Historia wpłat
                 </h2>
               </div>
               {donations.length === 0 && (
-                <p className="px-6 py-4 text-sm text-gray-500">Brak wpłat.</p>
+                <p className="px-6 py-4 text-xs text-gray-400">Brak wpłat.</p>
               )}
               {donations.length > 0 && (
-                <ul className="divide-y divide-gray-200 max-h-[720px] overflow-auto">
+                <ul className="divide-y divide-gray-100 max-h-[720px] overflow-auto">
                   {donations.map((d, idx) => (
                     <li key={idx} className="flex justify-between px-6 py-3">
                       <div>
                         <p className="text-sm text-gray-700">
                           {d.donor.slice(0, 6)}…{d.donor.slice(-4)}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-[10px] text-gray-400">
                           {new Date(d.timestamp).toLocaleString('pl-PL')}
                         </p>
                       </div>
-                      <p className="text-sm font-medium text-green-600">
-                        {d.amount.toFixed(2)} {displayToken}
-                      </p>
+                      <div className="flex flex-col items-end space-y-1">
+                        <p className="text-sm font-medium text-green-600">
+                          {d.amount.toFixed(2)} {displayToken}
+                        </p>
+                        <a
+                          href={`https://sepolia.etherscan.io/tx/${d.txHash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10px] text-blue-500 hover:underline"
+                        >
+                          Etherscan
+                        </a>
+                      </div>
                     </li>
                   ))}
                 </ul>
               )}
             </div>
+
           </div>
+
+          {/* PRAWA KOLUMNA - desktop only */}
+          <div className="hidden lg:flex lg:flex-col lg:space-y-6 lg:sticky lg:top-[175px]">
+
+            {/* Desktop donate panel */}
+            <div className="bg-white rounded-md shadow-sm overflow-hidden">
+              <div className="px-6 py-4">
+                <h1 className="text-2xl font-semibold text-[#1F4E79]">
+                  {title}
+                </h1>
+              </div>
+              <div className="px-6 pb-4">
+                <p className="text-lg font-medium text-green-600">
+                  {raised.toLocaleString('pl-PL')} {displayToken}{' '}
+                  <span className="text-base font-normal text-gray-500">
+                    ({progressPercent.toFixed(2)}%)
+                  </span>
+                </p>
+                <div className="mt-2 w-full bg-gray-100 rounded-full h-2">
+                  <div
+                    className="h-2 rounded-full bg-green-600 transition-width"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+                <p className="mt-2 text-xs text-gray-500">
+                  Brakuje {missing} {displayToken}
+                </p>
+              </div>
+              <div className="px-6 mb-4">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="Kwota w USDC"
+                  value={donationInput}
+                  onChange={e => setDonationInput(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-100 rounded-md focus:outline-none focus:ring-1 focus:ring-[#1F4E79]"
+                />
+              </div>
+              <div className="px-6 py-4">
+                <DonateButton
+                  campaignId={idNum}
+                  donationAmount={donationInput}
+                  className="w-full py-2 text-base font-medium text-white bg-[#68CC89] hover:bg-[#5FBF7A] rounded-md"
+                >
+                  Wesprzyj
+                </DonateButton>
+                <p className="mt-2 text-center text-xs text-gray-500">
+                  Wsparło {uniqueDonorsCount.toLocaleString('pl-PL')} osób
+                </p>
+              </div>
+              <div className="px-6 py-3 flex justify-between border-t border-gray-100">
+                <button className="flex flex-col items-center text-blue-500 hover:text-blue-700">
+                  <span className="text-xl mb-1">🐷</span>
+                  <span className="text-xs">Skarbonka</span>
+                </button>
+                <button className="flex flex-col items-center text-blue-500 hover:text-blue-700">
+                  <span className="text-xl mb-1">📣</span>
+                  <span className="text-xs">Promuj</span>
+                </button>
+                <button className="flex flex-col items-center text-blue-500 hover:text-blue-700">
+                  <span className="text-xl mb-1">📤</span>
+                  <span className="text-xs">Udostępnij</span>
+                </button>
+              </div>
+              <div className="border-t border-gray-100">
+                <button
+                  onClick={() => setShowSmsSection(prev => !prev)}
+                  className="w-full px-6 py-2 flex justify-between items-center text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  <span>SMS</span>
+                  <span>{showSmsSection ? '−' : '+'}</span>
+                </button>
+                {showSmsSection && (
+                  <div className="px-6 py-2 text-xs text-gray-500">
+                    Wyślij SMS "WPOMOC" na 7545 (5 zł + VAT).
+                  </div>
+                )}
+              </div>
+              <div className="border-t border-gray-100">
+                <button
+                  onClick={() => setShowTaxSection(prev => !prev)}
+                  className="w-full px-6 py-2 flex justify-between items-center text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  <span>1,5 % podatku</span>
+                  <span>{showTaxSection ? '−' : '+'}</span>
+                </button>
+                {showTaxSection && (
+                  <div className="px-6 py-2 text-xs text-gray-500 space-y-1">
+                    <p>KRS 0000396361</p>
+                    <p>Cel: 0768440 Adam</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+          </div>
+
         </div>
       </main>
 
