@@ -66,14 +66,7 @@ export default function Hero3D() {
       </div>
 
       {/* tekst na wierzchu */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-        <h1 className="text-4xl font-bold text-white">
-          Plant goodness, let people grow.
-        </h1>
-        <p className="mt-2 text-lg text-white">
-          Launch your campaign today and make your vision a reality!
-        </p>
-      </div>
+
     </div>
   );
 }

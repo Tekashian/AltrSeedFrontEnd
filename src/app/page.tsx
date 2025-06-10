@@ -7,7 +7,7 @@ import Slider from "react-slick";
 import { useRouter } from "next/navigation";
 import Footer from "../components/Footer";
 import CampaignCard from "../components/CampaignCard";
-import Hero3D from "../components/Hero3D";
+import HeroWithForm from "../components/HeroWithForm";
 import { useGetAllCampaigns, type Campaign } from "../hooks/useCrowdfund";
 
 import "slick-carousel/slick/slick.css";
@@ -125,8 +125,8 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#E0F0FF] text-[#1F4E79]">
-      {/* Hero banner z efektem 3D */}
-      <Hero3D />
+      {/* Hero banner z formularzem */}
+      <HeroWithForm />
 
       {/* Główna zawartość */}
       <main className="container mx-auto px-4 pt-24 pb-8">
