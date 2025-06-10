@@ -7,6 +7,7 @@ import Slider from "react-slick";
 import { useRouter } from "next/navigation";
 import Footer from "../components/Footer";
 import CampaignCard from "../components/CampaignCard";
+import Hero3D from "../components/Hero3D";
 import { useGetAllCampaigns, type Campaign } from "../hooks/useCrowdfund";
 
 import "slick-carousel/slick/slick.css";
@@ -51,10 +52,8 @@ export default function HomePage() {
               c.targetAmount > 0n
           )
           .sort((a, b) => {
-            const pa =
-              Number(a.raisedAmount) / Number(a.targetAmount);
-            const pb =
-              Number(b.raisedAmount) / Number(b.targetAmount);
+            const pa = Number(a.raisedAmount) / Number(a.targetAmount);
+            const pb = Number(b.raisedAmount) / Number(b.targetAmount);
             return pb - pa;
           })
           .slice(0, 6)
@@ -67,7 +66,9 @@ export default function HomePage() {
     console.log("Donate to campaign:", id);
 
   // State do przechowywania aktywnej zakładki: "Wszystkie", "Startups" lub "Charity"
-  const [activeTab, setActiveTab] = useState<"Wszystkie" | "Startups" | "Charity">("Wszystkie");
+  const [activeTab, setActiveTab] = useState<
+    "Wszystkie" | "Startups" | "Charity"
+  >("Wszystkie");
 
   // Funkcja wybiera kampanie w zależności od aktywnej zakładki
   // Kampanie typu "Startups" mają campaignType === 0
@@ -124,33 +125,15 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#E0F0FF] text-[#1F4E79]">
-      {/* Hero banner */}
-      <div className="relative w-full h-[50vh]">
-        <Image
-          src="/images/SadzDobro.png"
-          alt="Baner AltrSeed"
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-          <h1 className="text-4xl font-bold text-white">
-            Sadz dobro pozwol rosnac ludzią
-          </h1>
-          <p className="mt-2 text-lg text-white">
-            Launch your campaign today and make your vision a reality!
-          </p>
-        </div>
-      </div>
+      {/* Hero banner z efektem 3D */}
+      <Hero3D />
 
       {/* Główna zawartość */}
       <main className="container mx-auto px-4 pt-24 pb-8">
         {/* Sekcja: najbliżej celu */}
         {topProgress.length > 0 && (
           <section className="mb-12">
-            <h2 className="text-2xl font-bold mb-4">
-              Najbliżej celu
-            </h2>
+            <h2 className="text-2xl font-bold mb-4">Najbliżej celu</h2>
             <Slider {...sliderSettings}>
               {topProgress.map((c) => (
                 <div key={c.campaignId} className="px-2">
@@ -218,7 +201,7 @@ export default function HomePage() {
             </p>
           )}
 
-          {/* WYSWIETLANIE KAMPANII W GRIDZIE */}
+          {/* Wyświetlanie kampanii w gridzie */}
           {!isLoading && !error && displayedCampaigns.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {displayedCampaigns.map((campaign) => (
@@ -232,7 +215,7 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Przycisk Odśwież (po prawej stronie poniżej listy) */}
+          {/* Przycisk Odśwież */}
           <div className="flex justify-end mt-6">
             <button
               className="px-4 py-2 rounded bg-[#68CC89] text-white hover:bg-[#5fbf7a] transition"

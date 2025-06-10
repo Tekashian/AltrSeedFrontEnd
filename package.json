@@ -22,6 +22,7 @@
     "next": "15.3.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-parallax-tilt": "^1.7.297",
     "react-slick": "^0.30.3",
     "slick-carousel": "^1.8.1",
     "wagmi": "^2.15.2",
