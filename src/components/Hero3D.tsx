@@ -1,34 +1,12 @@
 // components/Hero3D.tsx
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Image from "next/image";
 
 export default function Hero3D() {
-  const [rot, setRot] = useState({ x: 0, y: 0 });
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const { width, height, left, top } = e.currentTarget.getBoundingClientRect();
-    const xNorm = ((e.clientX - left) / width) * 2 - 1;   // -1..1
-    const yNorm = ((e.clientY - top)  / height) * 2 - 1;  // -1..1
-    const maxAngle = 3;
-    setRot({ x: yNorm * maxAngle, y: -xNorm * maxAngle });
-  };
-
-  const handleMouseLeave = () => {
-    setRot({ x: 0, y: 0 });
-  };
-
-  const midStyle = {
-    transform: `perspective(800px) rotateX(${rot.x}deg) rotateY(${rot.y}deg)`,
-  };
-
   return (
-    <div
-      className="w-full aspect-[1920/800] relative overflow-hidden"
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-    >
+    <div className="w-full aspect-[1920/800] relative overflow-hidden">
       {/* warstwa tła (statyczna) */}
       <div className="absolute inset-0">
         <Image
@@ -41,8 +19,8 @@ export default function Hero3D() {
         />
       </div>
 
-      {/* warstwa deszczu (mid) z efektem 3D */}
-      <div className="absolute inset-0" style={midStyle}>
+      {/* warstwa deszczu (mid) – już bez efektu paralaksy, statyczna */}
+      <div className="absolute inset-0">
         <Image
           src="/images/layer-mid.png"
           alt="deszcz i pyłki"
@@ -65,8 +43,7 @@ export default function Hero3D() {
         />
       </div>
 
-      {/* tekst na wierzchu */}
-
+      {/* ewentualny tekst lub overlay do dodania poniżej */}
     </div>
   );
 }

@@ -28,7 +28,7 @@ export default function HeroWithForm() {
   };
   const handlePointerLeave = () => setRot({ x: 0, y: 0 });
 
-  // 2) Form state
+  // 2) Form state (only used on extra-large screens)
   const [campaignType, setCampaignType] = useState<"startup" | "charity">("charity");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -41,13 +41,16 @@ export default function HeroWithForm() {
 
   // 3) Image preview
   useEffect(() => {
-    if (!imageFile) return setImagePreview("");
+    if (!imageFile) {
+      setImagePreview("");
+      return;
+    }
     const url = URL.createObjectURL(imageFile);
     setImagePreview(url);
     return () => URL.revokeObjectURL(url);
   }, [imageFile]);
 
-  // 4) Submit handler (upload → metadata → createCampaign)
+  // 4) Submit handler (only on extra-large screens)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -55,7 +58,6 @@ export default function HeroWithForm() {
       setError("Wypełnij wszystkie pola.");
       return;
     }
-
     // parse amount
     let amountBI: bigint;
     try {
@@ -65,7 +67,6 @@ export default function HeroWithForm() {
       setError("Nieprawidłowa kwota.");
       return;
     }
-
     // parse end time
     let ts: bigint;
     try {
@@ -76,15 +77,12 @@ export default function HeroWithForm() {
       setError("Data zakończenia musi być w przyszłości.");
       return;
     }
-
     if (!address) {
       setError("Podłącz portfel.");
       return;
     }
-
     setSubmitting(true);
     try {
-      // upload image
       let rawCID: any = "";
       if (imageFile) {
         const fm = new FormData();
@@ -94,9 +92,10 @@ export default function HeroWithForm() {
         if (!res.ok) throw new Error(json.error || "Błąd uploadu");
         rawCID = json.cid;
       }
-      const cid = typeof rawCID === "object" && rawCID["/"] ? rawCID["/"] : String(rawCID);
-
-      // metadata
+      const cid =
+        typeof rawCID === "object" && rawCID["/"]
+          ? rawCID["/"]
+          : String(rawCID);
       const metadata = {
         title: title.trim(),
         description: description.trim(),
@@ -116,9 +115,10 @@ export default function HeroWithForm() {
       });
       const json2 = await res2.json();
       if (!res2.ok) throw new Error(json2.error || "Błąd uploadu metadanych");
-      const metaCID = typeof json2.cid === "object" && json2.cid["/"] ? json2.cid["/"] : String(json2.cid);
-
-      // call createCampaign
+      const metaCID =
+        typeof json2.cid === "object" && json2.cid["/"]
+          ? json2.cid["/"]
+          : String(json2.cid);
       const args = [
         campaignType === "startup" ? 0 : 1,
         USDC_ADDRESS,
@@ -132,7 +132,6 @@ export default function HeroWithForm() {
         functionName: "createCampaign",
         args,
       });
-
       router.push("/");
     } catch (err: any) {
       setError(err.message || "Błąd podczas tworzenia kampanii.");
@@ -142,113 +141,143 @@ export default function HeroWithForm() {
   };
 
   return (
-    <div
-      className="relative w-full aspect-[1920/800] overflow-hidden"
-      onPointerMove={handlePointerMove}
-      onPointerLeave={handlePointerLeave}
-    >
-      {/* parallax background */}
-      <Hero3D rot={rot} />
+    <>
+      {/* ===== EXTRA-LARGE SCREENS (≥1280px): 3D HERO + FORM ===== */}
+      <div
+        className="hidden xl:block relative w-full aspect-[1920/800] overflow-hidden"
+        onPointerMove={handlePointerMove}
+        onPointerLeave={handlePointerLeave}
+      >
+        {/* 3D background */}
+        <Hero3D rot={rot} />
 
-      {/* overlay: text + form */}
-      <div className="absolute inset-0 container mx-auto px-6 flex flex-col lg:flex-row items-center justify-center gap-12 h-full pointer-events-none">
-        {/* TEXT */}
-        <div className="flex-1 text-white space-y-6 pointer-events-auto">
-          <h1 className="text-5xl font-extrabold leading-tight">
-            Plant goodness, let people grow.
-          </h1>
-          <p className="text-lg max-w-md">
-            Start your fundraising journey here. Inspire, collect and make a real impact.
-          </p>
+        {/* overlay */}
+        <div className="absolute inset-0 container mx-auto px-6 h-full flex items-center justify-center pointer-events-none">
+          <div className="hidden xl:flex flex-row items-center justify-center gap-12 w-full pointer-events-auto">
+            {/* text */}
+            <div className="flex-1 text-white space-y-6">
+              <h1 className="text-5xl font-extrabold leading-tight">
+                Plant goodness, let people grow.
+              </h1>
+              <p className="text-lg max-w-md">
+                Start your fundraising journey here. Inspire, collect and make a real impact.
+              </p>
+            </div>
+            {/* form */}
+            <form
+              onSubmit={handleSubmit}
+              className="flex-1 bg-white/30 backdrop-blur-lg p-8 rounded-xl shadow-lg max-w-md w-full space-y-4"
+            >
+              {error && <p className="text-red-500">{error}</p>}
+              <div>
+                <label className="block text-black mb-1">Typ zbiórki</label>
+                <select
+                  value={campaignType}
+                  onChange={(e) => setCampaignType(e.target.value as any)}
+                  className="w-full px-4 py-2 rounded bg-white text-black focus:ring-2 focus:ring-[#68CC89]"
+                >
+                  <option value="charity">Charytatywna</option>
+                  <option value="startup">Startup</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-black mb-1">Tytuł zbiórki</label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full px-4 py-2 rounded bg-white text-black focus:ring-2 focus:ring-[#68CC89]"
+                  placeholder="My Charity Fund"
+                />
+              </div>
+              <div>
+                <label className="block text-black mb-1">Cel kwotowy (USDC)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={targetAmount}
+                  onChange={(e) => setTargetAmount(e.target.value)}
+                  className="w-full px-4 py-2 rounded bg-white text-black focus:ring-2 focus:ring-[#68CC89]"
+                  placeholder="500.00"
+                />
+              </div>
+              <div>
+                <label className="block text-black mb-1">Krótki opis</label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full px-4 py-2 rounded bg-white text-black h-24 focus:ring-2 focus:ring-[#68CC89]"
+                  placeholder="Write a short summary..."
+                />
+              </div>
+              <div>
+                <label className="block text-black mb-1">Data zakończenia</label>
+                <input
+                  type="datetime-local"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="w-full px-4 py-2 rounded bg-white text-black focus:ring-2 focus:ring-[#68CC89]"
+                />
+              </div>
+              <div>
+                <label className="block text-black mb-1">Dodaj zdjęcie (opcjonalne)</label>
+                <label className="w-full flex items-center justify-center px-4 py-2 bg-white text-black rounded cursor-pointer hover:bg-gray-100">
+                  <span className="mr-2">📷</span>
+                  <span>{imageFile ? imageFile.name : "Wybierz plik..."}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                  />
+                </label>
+                {imagePreview && (
+                  <img
+                    src={imagePreview}
+                    alt="preview"
+                    className="mt-2 w-full h-32 object-cover rounded"
+                  />
+                )}
+              </div>
+              <button
+                type="submit"
+                disabled={submitting}
+                className={`w-full py-3 rounded text-white ${
+                  submitting ? "bg-gray-400" : "bg-[#68CC89] hover:bg-[#5fbf7a]"
+                }`}
+              >
+                {submitting ? "Tworzę…" : "Create Campaign"}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      {/* ===== MOBILE & TABLET (<1280px): Hero3D as banner + Card ===== */}
+      <div className="xl:hidden flex flex-col">
+        {/* banner */}
+        <div className="relative w-full h-48 overflow-hidden pointer-events-none">
+          <Hero3D rot={{ x: 0, y: 0 }} />
         </div>
 
-        {/* FORM */}
-        <form
-          onSubmit={handleSubmit}
-          className="flex-1 bg-white/30 backdrop-blur-lg p-8 rounded-xl shadow-lg max-w-md w-full space-y-4 pointer-events-auto"
-        >
-          {error && <p className="text-red-500">{error}</p>}
-          <div>
-            <label className="block text-white mb-1">Typ zbiórki</label>
-            <select
-              value={campaignType}
-              onChange={(e) => setCampaignType(e.target.value as any)}
-              className="w-full px-4 py-2 rounded bg-white/90 text-black focus:ring-2 focus:ring-[#68CC89]"
-            >
-              <option value="charity">Charytatywna</option>
-              <option value="startup">Startup</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-white mb-1">Tytuł zbiórki</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-4 py-2 rounded bg-white/90 text-black focus:ring-2 focus:ring-[#68CC89]"
-              placeholder="My Charity Fund"
-            />
-          </div>
-          <div>
-            <label className="block text-white mb-1">Cel kwotowy (USDC)</label>
-            <input
-              type="number"
-              step="0.01"
-              value={targetAmount}
-              onChange={(e) => setTargetAmount(e.target.value)}
-              className="w-full px-4 py-2 rounded bg-white/90 text-black focus:ring-2 focus:ring-[#68CC89]"
-              placeholder="500.00"
-            />
-          </div>
-          <div>
-            <label className="block text-white mb-1">Krótki opis</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-2 rounded bg-white/90 text-black h-24 focus:ring-2 focus:ring-[#68CC89]"
-              placeholder="Write a short summary..."
-            />
-          </div>
-          <div>
-            <label className="block text-white mb-1">Data zakończenia</label>
-            <input
-              type="datetime-local"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-              className="w-full px-4 py-2 rounded bg-white/90 text-black focus:ring-2 focus:ring-[#68CC89]"
-            />
-          </div>
-          <div>
-            <label className="block text-white mb-1">Dodaj zdjęcie (opcjonalne)</label>
-            <label className="w-full flex items-center justify-center px-4 py-2 bg-white/90 text-black rounded cursor-pointer hover:bg-white">
-              <span className="mr-2">📷</span>
-              <span>{imageFile ? imageFile.name : "Wybierz plik..."}</span>
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-              />
-            </label>
-            {imagePreview && (
-              <img
-                src={imagePreview}
-                alt="preview"
-                className="mt-2 w-full h-32 object-cover rounded"
-              />
-            )}
-          </div>
+        {/* white card overlapping banner */}
+        <div className="relative z-20 bg-white p-6 rounded-xl shadow-lg -mt-20 mx-4 pointer-events-auto flex flex-col items-center text-center space-y-4">
+          <h1 className="text-2xl font-extrabold text-black leading-tight">
+            Plant goodness,
+            <br />
+            let people grow.
+          </h1>
+          <p className="text-base text-black max-w-sm">
+            Start your fundraising journey here. Inspire, collect and make a real impact.
+          </p>
           <button
-            type="submit"
-            disabled={submitting}
-            className={`w-full py-3 rounded text-white ${
-              submitting ? "bg-gray-400" : "bg-[#68CC89] hover:bg-[#5fbf7a]"
-            }`}
+            onClick={() => router.push("/create-campaign")}
+            className="px-6 py-2 bg-[#68CC89] hover:bg-[#5fbf7a] text-white font-medium rounded-lg shadow-md transition"
           >
-            {submitting ? "Tworzę…" : "Create Campaign"}
+            Create Campaign
           </button>
-        </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
