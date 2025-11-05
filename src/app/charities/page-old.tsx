@@ -1,4 +1,4 @@
-// src/app/startups/page.tsx
+// src/app/charities/page.tsx
 'use client'
 
 import React, { useEffect, useState } from 'react'
@@ -6,7 +6,7 @@ import { useGetAllCampaigns, type Campaign } from '../../hooks/useCrowdfund'
 import CampaignCard from '../../components/CampaignCard'
 import Footer from '../../components/Footer'
 
-export default function StartupsPage() {
+export default function CharitiesPage() {
   const { campaigns, isLoading, error, refetchCampaigns } = useGetAllCampaigns()
   const [filter, setFilter] = useState<'all' | 'active' | 'successful' | 'failed'>('all')
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'progress' | 'amount'>('newest')
@@ -18,13 +18,13 @@ export default function StartupsPage() {
     }
   }, [campaigns, refetchCampaigns])
 
-  // Filtrujemy kampanie typu Startup (0)
-  const startupCampaigns: Campaign[] = Array.isArray(campaigns)
-    ? campaigns.filter(c => c.campaignType === 0)
+  // Filtrujemy kampanie typu Charity (1)
+  const charityCampaigns: Campaign[] = Array.isArray(campaigns)
+    ? campaigns.filter(c => c.campaignType === 1)
     : []
 
   // Aplikujemy filtry
-  const filteredCampaigns = startupCampaigns.filter(campaign => {
+  const filteredCampaigns = charityCampaigns.filter(campaign => {
     switch (filter) {
       case 'active':
         return campaign.status === 0
@@ -56,7 +56,7 @@ export default function StartupsPage() {
   const getStatusLabel = (status: number) => {
     switch (status) {
       case 0: return 'Aktywna'
-      case 1: return 'Sfinansowana'
+      case 1: return 'Zakończona sukcesem'
       case 2: return 'Zamykana'
       case 5: return 'Nieudana'
       default: return 'Nieznany'
@@ -64,11 +64,11 @@ export default function StartupsPage() {
   }
 
   const stats = {
-    total: startupCampaigns.length,
-    active: startupCampaigns.filter(c => c.status === 0).length,
-    successful: startupCampaigns.filter(c => c.status === 1).length,
-    failed: startupCampaigns.filter(c => c.status === 5).length,
-    totalRaised: startupCampaigns.reduce((sum, c) => sum + Number(c.raisedAmount), 0) / 1e6,
+    total: charityCampaigns.length,
+    active: charityCampaigns.filter(c => c.status === 0).length,
+    successful: charityCampaigns.filter(c => c.status === 1).length,
+    failed: charityCampaigns.filter(c => c.status === 5).length,
+    totalRaised: charityCampaigns.reduce((sum, c) => sum + Number(c.raisedAmount), 0) / 1e6, // Convert to USDC
   }
 
   return (
@@ -78,18 +78,18 @@ export default function StartupsPage() {
           {/* Hero Section */}
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold text-[#1F4E79] mb-4">
-              Kampanie Startupowe
+              Kampanie Charytatywne
             </h1>
             <p className="text-xl text-gray-600 mb-6 max-w-3xl mx-auto">
-              Inwestuj w przyszłość i wspieraj innowacyjne projekty. Każda wpłata to inwestycja 
-              w przedsiębiorczość zabezpieczona przez blockchain.
+              Wspieraj ważne sprawy i pomagaj zmieniać świat na lepsze. Każda wpłata jest transparentna 
+              i zabezpieczona przez smart contracty na blockchainie Ethereum.
             </p>
             
             {/* Statistics */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 max-w-4xl mx-auto">
               <div className="bg-white p-4 rounded-lg shadow">
                 <div className="text-2xl font-bold text-[#1F4E79]">{stats.total}</div>
-                <div className="text-sm text-gray-600">Wszystkich startupów</div>
+                <div className="text-sm text-gray-600">Wszystkich kampanii</div>
               </div>
               <div className="bg-white p-4 rounded-lg shadow">
                 <div className="text-2xl font-bold text-green-600">{stats.active}</div>
@@ -97,7 +97,7 @@ export default function StartupsPage() {
               </div>
               <div className="bg-white p-4 rounded-lg shadow">
                 <div className="text-2xl font-bold text-blue-600">{stats.successful}</div>
-                <div className="text-sm text-gray-600">Sfinansowanych</div>
+                <div className="text-sm text-gray-600">Zakończonych</div>
               </div>
               <div className="bg-white p-4 rounded-lg shadow">
                 <div className="text-2xl font-bold text-red-600">{stats.failed}</div>
@@ -105,7 +105,7 @@ export default function StartupsPage() {
               </div>
               <div className="bg-white p-4 rounded-lg shadow">
                 <div className="text-2xl font-bold text-[#00ADEF]">{stats.totalRaised.toFixed(0)}</div>
-                <div className="text-sm text-gray-600">USDC zainwestowane</div>
+                <div className="text-sm text-gray-600">USDC zebrane</div>
               </div>
             </div>
           </div>
@@ -113,6 +113,7 @@ export default function StartupsPage() {
           {/* Filters and Controls */}
           <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+              {/* Filter by Status */}
               <div className="flex flex-col md:flex-row items-start md:items-center space-y-2 md:space-y-0 md:space-x-4">
                 <label className="font-semibold text-[#1F4E79]">Filtruj według stanu:</label>
                 <select
@@ -122,11 +123,12 @@ export default function StartupsPage() {
                 >
                   <option value="all">Wszystkie</option>
                   <option value="active">Aktywne</option>
-                  <option value="successful">Sfinansowane</option>
+                  <option value="successful">Zakończone sukcesem</option>
                   <option value="failed">Nieudane</option>
                 </select>
               </div>
 
+              {/* Sort By */}
               <div className="flex flex-col md:flex-row items-start md:items-center space-y-2 md:space-y-0 md:space-x-4">
                 <label className="font-semibold text-[#1F4E79]">Sortuj według:</label>
                 <select
@@ -136,11 +138,12 @@ export default function StartupsPage() {
                 >
                   <option value="newest">Najnowsze</option>
                   <option value="oldest">Najstarsze</option>
-                  <option value="progress">Postęp finansowania</option>
+                  <option value="progress">Postęp</option>
                   <option value="amount">Kwota celu</option>
                 </select>
               </div>
 
+              {/* Refresh Button */}
               <button
                 onClick={() => refetchCampaigns()}
                 className="px-4 py-2 bg-[#68CC89] text-white rounded-lg hover:bg-[#5BBE7A] transition"
@@ -151,7 +154,7 @@ export default function StartupsPage() {
             </div>
 
             <div className="mt-4 text-sm text-gray-600">
-              Pokazano {sortedCampaigns.length} z {startupCampaigns.length} startupów
+              Pokazano {sortedCampaigns.length} z {charityCampaigns.length} kampanii charytatywnych
             </div>
           </div>
 
@@ -159,7 +162,7 @@ export default function StartupsPage() {
           {isLoading && (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1F4E79] mx-auto mb-4"></div>
-              <p className="text-lg text-[#1F4E79]">Ładowanie startupów...</p>
+              <p className="text-lg text-[#1F4E79]">Ładowanie kampanii...</p>
             </div>
           )}
 
@@ -181,8 +184,8 @@ export default function StartupsPage() {
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
               <p className="text-lg text-yellow-800">
                 {filter === 'all' 
-                  ? 'Brak kampanii startupowych.'
-                  : `Brak startupów o statusie "${filter === 'active' ? 'aktywne' : filter === 'successful' ? 'sfinansowane' : 'nieudane'}".`
+                  ? 'Brak kampanii charytatywnych.'
+                  : `Brak kampanii o statusie "${filter === 'active' ? 'aktywne' : filter === 'successful' ? 'zakończone sukcesem' : 'nieudane'}".`
                 }
               </p>
             </div>
@@ -203,15 +206,15 @@ export default function StartupsPage() {
 
           {/* Call to Action */}
           <div className="mt-16 bg-gradient-to-r from-[#1F4E79] to-[#00ADEF] rounded-lg p-8 text-center text-white">
-            <h2 className="text-2xl font-bold mb-4">Masz innowacyjny pomysł na startup?</h2>
+            <h2 className="text-2xl font-bold mb-4">Masz pomysł na kampanię charytatywną?</h2>
             <p className="mb-6 text-lg opacity-90">
-              Stwórz kampanię crowdfundingową i pozyskaj środki na rozwój swojego projektu
+              Stwórz własną kampanię i zacznij zbierać środki na ważną sprawę
             </p>
             <a
               href="/create-campaign"
               className="inline-block px-8 py-3 bg-white text-[#1F4E79] font-semibold rounded-lg hover:bg-gray-100 transition"
             >
-              Rozpocznij finansowanie
+              Utwórz kampanię
             </a>
           </div>
         </div>
@@ -220,17 +223,6 @@ export default function StartupsPage() {
     </>
   )
 }
-  useEffect(() => {
-    if (!campaigns) {
-      refetchCampaigns()
-    }
-  }, [campaigns, refetchCampaigns])
-
-  // Filtrujemy kampanie typu Startup (0) i sortujemy malejąco po campaignId
-  const startupCampaigns: Campaign[] = Array.isArray(campaigns)
-    ? campaigns
-        .filter(c => c.campaignType === 0)
-        .sort((a, b) => (b.campaignId! - a.campaignId!))
     : []
 
   return (
@@ -245,7 +237,7 @@ export default function StartupsPage() {
             className="text-3xl font-bold"
             style={{ color: '#1F4E79' }}
           >
-            Startups
+            Charities
           </h1>
           <button
             onClick={() => refetchCampaigns()}
@@ -256,12 +248,13 @@ export default function StartupsPage() {
           </button>
         </div>
 
-        {/* Stany ładowania / błąd */}
+        {/* Stan ładowania */}
         {isLoading && (
           <p className="text-lg" style={{ color: '#1F4E79' }}>
             Ładowanie kampanii…
           </p>
         )}
+        {/* Błąd */}
         {error && (
           <p className="text-lg" style={{ color: '#FF6B6B' }}>
             Błąd: {(error as Error).message}
@@ -269,16 +262,16 @@ export default function StartupsPage() {
         )}
 
         {/* Brak kampanii */}
-        {!isLoading && !error && startupCampaigns.length === 0 && (
+        {!isLoading && !error && charityCampaigns.length === 0 && (
           <p className="text-lg" style={{ color: '#1F4E79' }}>
-            Brak zbiórek typu „Startup”.
+            Brak zbiórek typu „Charity”.
           </p>
         )}
 
-        {/* Lista kart */}
-        {!isLoading && !error && startupCampaigns.length > 0 && (
+        {/* Lista kart kampanii */}
+        {!isLoading && !error && charityCampaigns.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {startupCampaigns.map(c => (
+            {charityCampaigns.map(c => (
               <CampaignCard
                 key={c.campaignId}
                 campaign={c}
