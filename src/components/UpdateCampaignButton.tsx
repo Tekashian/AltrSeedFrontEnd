@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react'
 import { useAccount, useWriteContract } from 'wagmi'
-import { CROWDFUND_ABI } from '../app/abi/CrowdfundAbi'
+import { CROWDFUND_ABI } from '../blockchain/crowdfundAbi'
 
 const CROWDFUND_ADDRESS = '0x774Ebb8388d01c54E8334B090e3cED93F748e79d'
 
