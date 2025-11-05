@@ -56,7 +56,7 @@ export default function CreateCampaignPage() {
     let amountBI: bigint;
     try {
       amountBI = parseUnits(targetAmount, 6);
-      if (amountBI <= 0n) throw new Error();
+      if (amountBI <= BigInt(0)) throw new Error();
     } catch {
       setError('Podaj prawidłową kwotę (np. 500.00).');
       return;

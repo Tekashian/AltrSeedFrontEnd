@@ -8,7 +8,7 @@ import { CROWDFUND_ABI } from '../blockchain/crowdfundAbi';
 import { parseUnits } from 'viem';
 
 interface DonateButtonProps {
-  campaignId: number;
+  campaignId: bigint;
   donationAmount: string;
   className?: string;
   children?: React.ReactNode;
@@ -32,7 +32,7 @@ const DonateButton: React.FC<DonateButtonProps> = ({
 
   const handleDonateFlow = async () => {
     try {
-      if (campaignId === undefined || campaignId < 1 || isNaN(Number(campaignId))) {
+      if (campaignId === undefined || campaignId < BigInt(1)) {
         throw new Error('Invalid campaignId provided to DonateButton. Must be >= 1');
       }
 

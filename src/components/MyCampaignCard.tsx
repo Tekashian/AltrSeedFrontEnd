@@ -112,8 +112,8 @@ const MyCampaignCard: React.FC<MyCampaignCardProps> = ({
 
   // --- Obliczamy postęp kampanii ---
   const progress =
-    campaign.targetAmount > 0n
-      ? Number((campaign.raisedAmount * 10000n) / campaign.targetAmount) / 100
+    campaign.targetAmount > BigInt(0)
+      ? Number((campaign.raisedAmount * BigInt(10000)) / campaign.targetAmount) / 100
       : 0
 
   // Skrót tokena (USDC lub adres)

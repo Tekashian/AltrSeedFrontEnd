@@ -86,8 +86,8 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
   }, [cid])
 
   const progress =
-    campaign.targetAmount > 0n
-      ? Number((campaign.raisedAmount * 10000n) / campaign.targetAmount) / 100
+    campaign.targetAmount > BigInt(0)
+      ? Number((campaign.raisedAmount * BigInt(10000)) / campaign.targetAmount) / 100
       : 0
 
   const displayToken =

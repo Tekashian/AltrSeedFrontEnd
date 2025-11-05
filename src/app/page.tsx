@@ -48,8 +48,8 @@ export default function HomePage() {
           .filter(
             (c) =>
               c.status === 0 &&
-              c.raisedAmount > 0n &&
-              c.targetAmount > 0n
+              c.raisedAmount > BigInt(0) &&
+              c.targetAmount > BigInt(0)
           )
           .sort((a, b) => {
             const pa = Number(a.raisedAmount) / Number(a.targetAmount);

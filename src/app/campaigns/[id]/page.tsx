@@ -61,7 +61,7 @@ const formatUSDC = (amount: bigint): string => {
 export default function CampaignDetailPage() {
   const params = useParams()
   const idParam = params.id
-  const idNum = Number(idParam)
+  const idNum = BigInt(idParam as string)
 
   const {
     data,
@@ -210,8 +210,8 @@ export default function CampaignDetailPage() {
   const target = Number(formatUnits(campaign.targetAmount, 6))
   const missing = (target - raised).toFixed(2)
   const progressPercent =
-    campaign.targetAmount > 0n
-      ? Number((campaign.raisedAmount * 10000n) / campaign.targetAmount) / 100
+    campaign.targetAmount > BigInt(0)
+      ? Number((campaign.raisedAmount * BigInt(10000)) / campaign.targetAmount) / 100
       : 0
   const displayToken =
     campaign.acceptedToken.toLowerCase() ===
