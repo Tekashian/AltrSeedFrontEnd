@@ -27,7 +27,7 @@ export async function POST(request: Request) {
 
     const proof = await Proof.parse(process.env.STORACHA_PROOF!);
     const space = await client.addSpace(proof);
-    await client.setCurrentSpace(process.env.NEXT_PUBLIC_SPACE_DID!);
+    await client.setCurrentSpace(process.env.NEXT_PUBLIC_SPACE_DID! as `did:${string}:${string}`);
 
     // 2) upload pliku
     // Blob w Node.js nie ma nazwy – tworzymy File-like, żeby zachować nazwę
