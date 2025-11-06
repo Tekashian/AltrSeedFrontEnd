@@ -60,11 +60,6 @@ export default function HomePage() {
       : [];
   }, [campaigns]);
 
-  const handleDetailsClick = (id: number) =>
-    console.log("Szczegóły kampanii:", id);
-  const handleDonateClick = (id: number) =>
-    console.log("Donate to campaign:", id);
-
   // State do przechowywania aktywnej zakładki: "Wszystkie", "Startups" lub "Charity"
   const [activeTab, setActiveTab] = useState<
     "Wszystkie" | "Startups" | "Charity"
@@ -139,8 +134,6 @@ export default function HomePage() {
                 <div key={c.campaignId} className="px-2">
                   <CampaignCard
                     campaign={c}
-                    onDetailsClick={handleDetailsClick}
-                    onDonateClick={handleDonateClick}
                   />
                 </div>
               ))}
@@ -208,8 +201,6 @@ export default function HomePage() {
                 <CampaignCard
                   key={campaign.campaignId}
                   campaign={campaign}
-                  onDetailsClick={handleDetailsClick}
-                  onDonateClick={handleDonateClick}
                 />
               ))}
             </div>

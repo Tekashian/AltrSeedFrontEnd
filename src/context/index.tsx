@@ -38,10 +38,6 @@ const defaultNetworkChain = appNetworks.length > 0 ? appNetworks[0] as unknown a
 
 if (!defaultNetworkChain && appNetworks.length > 0) {
     console.warn("Warning: Could not determine defaultNetworkChain correctly, ensure `networks` in `config/index.tsx` is an array of Chain objects from `@reown/appkit/networks` or `wagmi/chains`.");
-} else if (appNetworks.length === 0) {
-    console.error("ERROR: The `networks` array in `config/index.tsx` is empty. Reown AppKit requires at least one network.");
-    // Możesz tu rzucić błędem, aby zatrzymać aplikację, jeśli to krytyczne
-    // throw new Error("Reown AppKit requires at least one network defined in config/index.tsx.");
 }
 
 
@@ -50,7 +46,7 @@ const modal = createAppKit({
     projectId, // Tutaj używane jest projectId
     // Upewnij się, że appNetworks jest poprawnie zdefiniowaną tablicą Chain[] w config/index.tsx
     // i że zawiera przynajmniej jedną sieć, np. [sepolia]
-    networks: appNetworks as [Chain, ...Chain[]], // Rzutowanie dla createAppKit; upewnij się, że appNetworks nie jest puste
+    networks: appNetworks as unknown as [Chain, ...Chain[]], // Rzutowanie dla createAppKit; upewnij się, że appNetworks nie jest puste
     defaultNetwork: defaultNetworkChain, // Może być undefined, jeśli appNetworks jest puste
     metadata,
     features: {

@@ -135,7 +135,7 @@ export default function CreateCampaignPage() {
       // -----------------------------------------
       const args = [
         campaignType === 'startup' ? 0 : 1,
-        acceptedToken,
+        acceptedToken as `0x${string}`,
         amountBI,
         metadataCID,
         ts,
@@ -152,8 +152,10 @@ export default function CreateCampaignPage() {
       console.log('🔍 transaction hash:', hash);
       setTxHash(hash);
 
-      // Czekaj na potwierdzenie na blockchainie
-      await publicClient.waitForTransactionReceipt({ hash });
+      // Czekaj na potwierdzenie na blockchainie (tylko jeśli publicClient jest dostępny)
+      if (publicClient) {
+        await publicClient.waitForTransactionReceipt({ hash });
+      }
 
       // 8) Przekierowanie po potwierdzeniu
       router.push('/');

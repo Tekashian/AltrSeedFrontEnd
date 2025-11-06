@@ -174,7 +174,9 @@ const MyCampaignCard: React.FC<MyCampaignCardProps> = ({
     const isFailed = campaign.status === 5       // 5 = Failed
     const isCreator =
       address?.toLowerCase() === campaign.creator.toLowerCase()
-    const hasDonorReclaimed = hasReclaimedMap[campaign.campaignId]
+    const hasDonorReclaimed = campaign.campaignId !== undefined 
+      ? hasReclaimedMap[campaign.campaignId] 
+      : false
 
     // 1) Jeśli status = Completed i jesteś twórcą → pokaż „Wypłać”
     if (isCompleted && isCreator) {
@@ -350,7 +352,6 @@ const MyCampaignCard: React.FC<MyCampaignCardProps> = ({
             <WithdrawButton
               campaignId={idx + 1}
               className="px-6 py-3 bg-green-500 text-white text-lg font-semibold rounded-lg hover:bg-green-600 transition"
-              onClick={() => onWithdraw(idx, cid)}
             >
               Wypłać
             </WithdrawButton>
@@ -358,18 +359,14 @@ const MyCampaignCard: React.FC<MyCampaignCardProps> = ({
             <CloseCampaignButton
               campaignId={idx + 1}
               className="px-6 py-3 bg-orange-500 text-white text-lg font-semibold rounded-lg hover:bg-orange-600 transition"
-              onClick={() => onInitiateClosure(idx)}
             >
               Rozpocznij zamknięcie
             </CloseCampaignButton>
           ) : showRefundButton ? (
             <RefundButton
               campaignId={idx + 1}
-              className="px-6 py-3 bg-red-500 text-white text-lg font-semibold rounded-lg hover:bg-red-600 transition"
-              onClick={() => onClaimRefund(idx)}
-            >
-              Zwróć wpłatę
-            </RefundButton>
+              refundAmount="0"
+            />
           ) : null}
         </div>
       </div>

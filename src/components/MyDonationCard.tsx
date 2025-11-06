@@ -141,7 +141,7 @@ export default function MyDonationCard({
       {/* Actions */}
       <div className="p-4 border-t border-gray-100 flex justify-center">
         <div onClick={e => e.stopPropagation()}>
-          <RefundButton campaignId={idx + 1} />
+          <RefundButton campaignId={idx + 1} refundAmount="0" />
         </div>
       </div>
     </div>

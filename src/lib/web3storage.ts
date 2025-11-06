@@ -1,6 +1,7 @@
 // src/lib/web3storage.ts
 
-import { Web3Storage, type Filelike } from 'web3.storage'
+// @ts-ignore
+import { Web3Storage } from 'web3.storage'
 
 /**
  * Zwraca klienta Web3.Storage
@@ -27,7 +28,7 @@ export function getWeb3StorageClient(): Web3Storage {
 /**
  * Uploaduje dowolne pliki i zwraca CID katalogu.
  */
-export async function uploadToWeb3Storage(files: Filelike[]): Promise<string> {
+export async function uploadToWeb3Storage(files: any[]): Promise<string> {
   const client = getWeb3StorageClient()
   const cid = await client.put(files)
   return cid

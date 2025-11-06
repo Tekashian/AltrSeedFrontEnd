@@ -53,7 +53,7 @@ const DonateButton: React.FC<DonateButtonProps> = ({
         address: CROWDFUND_ADDRESS,
         abi: CROWDFUND_ABI,
         functionName: 'donate',
-        args: [campaignId, amount],
+        args: [BigInt(campaignId), amount],
       });
 
       console.log('[Donate Tx]', donateTxHash);

@@ -30,6 +30,10 @@ export default function WalletActions() {
   // 3) Pobranie salda
   const handleGetBalance = async () => {
     setError(null);
+    if (!address) {
+      setError('Brak adresu portfela');
+      return;
+    }
     try {
       const provider = new BrowserProvider(walletProvider, chainId);
       const bal       = await provider.getBalance(address);
@@ -43,6 +47,10 @@ export default function WalletActions() {
   // 4) Podpisanie wiadomości
   const handleSignMsg = async () => {
     setError(null);
+    if (!address) {
+      setError('Brak adresu portfela');
+      return;
+    }
     try {
       const provider = new BrowserProvider(walletProvider, chainId);
       const signer   = new JsonRpcSigner(provider, address);
@@ -61,6 +69,10 @@ export default function WalletActions() {
 
   const handleSendTx = async () => {
     setError(null);
+    if (!address) {
+      setError('Brak adresu portfela');
+      return;
+    }
     try {
       const provider = new BrowserProvider(walletProvider, chainId);
       const signer   = new JsonRpcSigner(provider, address);

@@ -28,7 +28,7 @@ const RefundButton: React.FC<RefundButtonProps> = ({ campaignId, refundAmount })
         address: CROWDFUND_ADDRESS,
         abi: CROWDFUND_ABI,
         functionName: 'claimRefund',
-        args: [campaignId],
+        args: [BigInt(campaignId)],
       });
       setTxHash(tx);
       setStep('done');

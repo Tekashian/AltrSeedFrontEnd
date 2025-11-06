@@ -149,7 +149,7 @@ export default function HeroWithForm() {
         onPointerLeave={handlePointerLeave}
       >
         {/* 3D background */}
-        <Hero3D rot={rot} />
+        <Hero3D />
 
         {/* overlay */}
         <div className="absolute inset-0 container mx-auto px-6 h-full flex items-center justify-center pointer-events-none">
@@ -257,7 +257,7 @@ export default function HeroWithForm() {
       <div className="xl:hidden flex flex-col">
         {/* banner */}
         <div className="relative w-full h-48 overflow-hidden pointer-events-none">
-          <Hero3D rot={{ x: 0, y: 0 }} />
+          <Hero3D />
         </div>
 
         {/* white card overlapping banner */}

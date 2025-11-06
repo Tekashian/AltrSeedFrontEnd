@@ -35,7 +35,7 @@ const WithdrawButton: React.FC<WithdrawButtonProps> = ({
         address: CROWDFUND_ADDRESS,
         abi: CROWDFUND_ABI,
         functionName: 'withdrawFunds',
-        args: [campaignId],
+        args: [BigInt(campaignId)],
       })
 
       console.log('[Withdraw Tx]', withdrawTxHash)

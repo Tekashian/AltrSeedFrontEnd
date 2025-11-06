@@ -35,7 +35,7 @@ const CloseCampaignButton: React.FC<CloseCampaignButtonProps> = ({
         address: CROWDFUND_ADDRESS,
         abi: CROWDFUND_ABI,
         functionName: 'initiateClosure',
-        args: [campaignId],
+        args: [BigInt(campaignId)],
       })
 
       console.log('[InitiateClosure Tx]', closeTxHash)
